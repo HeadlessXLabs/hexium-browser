@@ -19,7 +19,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - GitHub Action **Setup Hexium** (`.github/actions/setup-hexium`) caches `~/.hexium/hexium-v{VERSION}/` and runs `hexium-browser fetch` on miss. Ubuntu CI installs the package, restores the binary, runs `pytest -m 'not slow'`, and a headless `launch()` smoke.
 - Publish workflows fail if PyPI or Docker Hub already has that version.
 - Windows fonts: `HEXIUM_FONTS_DIR` / `~/.hexium/fonts/windows` (no machine-local default path).
-- Docker image: `headlessxlabs/hexium-browser` (Xvfb + pre-fetched Linux Chrome).
+- Docker image: `saifyxpro/hexium-browser` (Xvfb + pre-fetched Linux Chrome).
 
 ### [docs]
 

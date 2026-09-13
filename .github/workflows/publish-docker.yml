@@ -18,7 +18,7 @@ env:
 
 jobs:
   publish:
-    name: Build and push ${{ env.IMAGE }}
+    name: Build and push Docker Hub image
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -32,6 +32,10 @@ jobs:
         id: ver
         run: |
           VERSION=$(grep -oE '__version__ = "[^"]+"' src/hexium_browser/_version.py | head -1 | cut -d'"' -f2)
+          if [[ -z "${VERSION}" ]]; then
+            echo "ERROR: could not read __version__ from src/hexium_browser/_version.py" >&2
+            exit 1
+          fi
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
           echo "Image version: ${VERSION}"
 
