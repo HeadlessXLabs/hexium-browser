@@ -14,16 +14,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [0.1.1] — 2026-09-13
 
+PyPI [`hexium-browser` 0.1.1](https://pypi.org/project/hexium-browser/0.1.1/) and Docker Hub [`saifyxpro/hexium-browser:0.1.1`](https://hub.docker.com/r/saifyxpro/hexium-browser).
+
 ### [wrapper]
 
 - GitHub Action **Setup Hexium** (`.github/actions/setup-hexium`) caches `~/.hexium/hexium-v{VERSION}/` and runs `hexium-browser fetch` on miss. Ubuntu CI installs the package, restores the binary, runs `pytest -m 'not slow'`, and a headless `launch()` smoke.
-- Publish workflows fail if PyPI or Docker Hub already has that version.
+- Publish workflows (`.github/workflows/publish-pypi.yml`, `publish-docker.yml`) on `v*` tags. They fail if PyPI or Docker Hub already has that version (no silent overwrite).
 - Windows fonts: `HEXIUM_FONTS_DIR` / `~/.hexium/fonts/windows` (no machine-local default path).
-- Docker image: `saifyxpro/hexium-browser` (Xvfb + pre-fetched Linux Chrome).
+- Docker image `saifyxpro/hexium-browser` — Xvfb + geoip extra + Linux Chrome 151 pre-fetched at build. linux/amd64 only.
 
 ### [docs]
 
-- README badges: PyPI version/downloads, Docker pulls, stars, license.
+- README: PyPI / pepy / Docker Hub (`saifyxpro`) badges, Docker install (`:0.1.1` / `:latest`, profile volume), hero demo as GIF (GitHub README does not play repo `.webm`).
 - Setup Hexium Action + Ubuntu CI. Engine tarball only on `Hexium-{VERSION}` releases.
 
 ---

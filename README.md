@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://pypi.org/project/hexium-browser/"><img src="https://img.shields.io/pypi/v/hexium-browser?style=flat-square&logo=pypi&logoColor=white&label=version" alt="Published version on PyPI"></a>
   <a href="https://pypi.org/project/hexium-browser/"><img src="https://img.shields.io/pepy/dt/hexium-browser?style=flat-square&logo=pypi&logoColor=white&label=downloads" alt="PyPI downloads"></a>
-  <a href="https://hub.docker.com/r/headlessxlabs/hexium-browser"><img src="https://img.shields.io/docker/pulls/headlessxlabs/hexium-browser?style=flat-square&logo=docker&logoColor=white" alt="Docker pulls"></a>
+  <a href="https://hub.docker.com/r/saifyxpro/hexium-browser"><img src="https://img.shields.io/docker/pulls/saifyxpro/hexium-browser?style=flat-square&logo=docker&logoColor=white" alt="Docker pulls"></a>
   <a href="LICENSE.md"><img src="https://img.shields.io/badge/license-AGPL--3.0--only-a32d2d?style=flat-square&logo=gnu&logoColor=white" alt="AGPL-3.0-only"></a>
   <a href="https://github.com/HeadlessXLabs/hexium-browser/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/HeadlessXLabs/hexium-browser/ci.yml?branch=develop&style=flat-square&label=CI" alt="CI"></a>
   <a href="https://github.com/HeadlessXLabs/hexium-browser"><img src="https://img.shields.io/github/stars/HeadlessXLabs/hexium-browser?style=flat-square" alt="GitHub stars"></a>
@@ -22,8 +22,10 @@ Playwright in. Chrome 151 out. Built by HeadlessX Labs.
 Sites see **Google Chrome 151**. You see Hexium Browser — a C++ persona compiled into Chromium, persistent disk profiles, humanize, and GeoIP locale. No JS injectors.
 
 <p align="center">
-  <video src="assets/recordings/google_search_human_headless_new_profile.webm" width="800" controls playsinline muted></video>
-  <br><em>Headless Google search, new profile — <code>examples/google_search_human_headless_new_profile.py</code></em>
+  <a href="assets/recordings/google_search_human_headless_new_profile.webm">
+    <img src="assets/recordings/google_search_human_headless_new_profile.gif" alt="Headless Google search, new profile" width="800">
+  </a>
+  <br><em>Headless Google search, new profile — <code>examples/google_search_human_headless_new_profile.py</code>. GitHub README does not play repo <code>.webm</code>; click for the recording.</em>
 </p>
 
 ## Features
@@ -71,24 +73,46 @@ pip install 'hexium-browser[geoip]'   # timezone / locale / WebRTC from egress I
 hexium-browser fetch                  # Chrome 151 binary (Linux x86_64)
 ```
 
-Docker (Linux x86_64, binary fetched at image build):
-
-```bash
-docker pull headlessxlabs/hexium-browser
-docker run --rm headlessxlabs/hexium-browser hexium-browser info --quick
-docker run --rm headlessxlabs/hexium-browser python -c "from hexium_browser import launch; b=launch(headless=True); b.close()"
-```
-
 From this repo (if PyPI is not what you want):
 
 ```bash
-pip install 'hexium-browser[geoip] @ git+https://github.com/HeadlessXLabs/hexium-browser.git@v0.1.0'
+pip install 'hexium-browser[geoip] @ git+https://github.com/HeadlessXLabs/hexium-browser.git@v0.1.1'
 hexium-browser fetch
 ```
 
 Requires Python 3.9+ and the Playwright **driver** (ships with the `playwright` package). Do **not** `playwright install chromium` — Hexium launches its own Chrome 151 binary.
 
 GeoIP is on by default; without the extra, launch continues and timezone stays the sampled UTC.
+
+## Docker
+
+Linux **x86_64** only (`linux/amd64`). The image already has `hexium-browser[geoip]` and the Chrome 151 binary. The entrypoint starts Xvfb `:99` so headed `launch(headless=False)` works without a monitor.
+
+```bash
+docker pull saifyxpro/hexium-browser:0.1.1
+# or: docker pull saifyxpro/hexium-browser:latest
+
+docker run --rm saifyxpro/hexium-browser:0.1.1 hexium-browser info --quick
+
+docker run --rm saifyxpro/hexium-browser:0.1.1 python -c \
+  "from hexium_browser import launch; b=launch(headless=True); p=b.new_page(); p.goto('https://example.com'); b.close()"
+```
+
+Keep a named profile on the host:
+
+```bash
+mkdir -p ~/.hexium/profiles
+docker run --rm \
+  -v ~/.hexium/profiles:/root/.hexium/profiles \
+  saifyxpro/hexium-browser:0.1.1 \
+  python -c "from hexium_browser import launch; b=launch(profile='Work', headless=True); b.close()"
+```
+
+Build locally from this repo:
+
+```bash
+docker build -t saifyxpro/hexium-browser .
+```
 
 ## CLI
 
@@ -299,7 +323,7 @@ Unpack it and you get `hexium-v151.0.7922.174.1/chrome` (same layout as `~/.hexi
 The tarball is attached **once**, on the engine release — not on Python `vX.Y.Z` tags:
 
 - Engine + binary: [Hexium-151.0.7922.174.1](https://github.com/HeadlessXLabs/hexium-browser/releases/tag/Hexium-151.0.7922.174.1)
-- Python package notes: [Hexium_browser-0.1.0](https://github.com/HeadlessXLabs/hexium-browser/releases/tag/v0.1.0)
+- Python package notes: [Hexium_browser-0.1.1](https://github.com/HeadlessXLabs/hexium-browser/releases/tag/v0.1.1)
 
 `hexium-browser fetch` tries `https://headlessx.dev/api/download` first. On 404 it downloads:
 
@@ -340,7 +364,7 @@ GeoIP is **on by default**. With `hexium-browser[geoip]`, Hexium maps the **egre
 
 | Doc | What |
 | --- | --- |
-| [Changelog](CHANGELOG.md) | 0.1.0 alpha and later |
+| [Changelog](CHANGELOG.md) | 0.1.1 and later |
 | [Usage](docs/USAGE.md) | `launch()`, personas, GeoIP, humanize, profiles |
 | [CI](docs/CI.md) | Ubuntu Actions, Setup Hexium, pytest |
 | [Personas](docs/persona/README.md) | `linux-native`, `linux-chrome`, `windows-native`, `windows-chrome`, `macos-native` |
