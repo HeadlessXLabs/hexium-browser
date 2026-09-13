@@ -10,15 +10,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
+---
+
+## [0.1.1] — 2026-09-13
+
 ### [wrapper]
 
-- Fetch: connection errors (reset, timeout) try the next URL instead of aborting. GitHub Actions downloads from GitHub Releases first.
-- `hexium-browser` **0.1.0** is on PyPI. `pip install hexium-browser` then `hexium-browser fetch`.
+- Fetch: connection errors try the next URL. GitHub Actions / Docker download GitHub Releases first.
+- Windows fonts: `HEXIUM_FONTS_DIR` / `~/.hexium/fonts/windows` (no machine-local default path).
+- Docker image: `headlessxlabs/hexium-browser` (Xvfb + pre-fetched Linux Chrome).
 
 ### [docs]
 
-- Install/CLI match PyPI. Engine tarball is documented on `Hexium-{VERSION}` releases only.
-- Wrapper markdown no longer includes Chromium rebuild commands.
+- README badges: PyPI version/downloads, Docker pulls, stars, license.
+- Setup Hexium Action + Ubuntu CI. Engine tarball only on `Hexium-{VERSION}` releases.
 
 ---
 
@@ -59,5 +64,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - README quickstart, [Usage](docs/USAGE.md), [persona pages](docs/persona/README.md), CONTRIBUTING, SUPPORT, SECURITY, CLAUDE.md.
 - Oracle captures (12 Sep 2026): reCAPTCHA v3 demo **0.9**, BrowserScan bot **Normal**, DABI human, sannysoft WebDriver missing.
 
-[Unreleased]: https://github.com/HeadlessXLabs/hexium-browser/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/HeadlessXLabs/hexium-browser/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/HeadlessXLabs/hexium-browser/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/HeadlessXLabs/hexium-browser/releases/tag/v0.1.0

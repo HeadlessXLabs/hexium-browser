@@ -1,6 +1,6 @@
 # Security
 
-Hexium Browser 0.1.0 is alpha. The Python API is [AGPL-3.0 only](LICENSE.md). The `chrome` binary has a separate [BINARY-LICENSE.md](BINARY-LICENSE.md).
+Hexium Browser 0.1.1 is alpha. The Python API is [AGPL-3.0 only](LICENSE.md). The `chrome` binary has a separate [BINARY-LICENSE.md](BINARY-LICENSE.md).
 
 ## Reporting
 

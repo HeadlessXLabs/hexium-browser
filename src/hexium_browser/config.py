@@ -277,12 +277,11 @@ def _cached_binary_relative() -> Path:
 
 
 def get_default_hexium_binary_path(version: str | None = None) -> str:
-    """Local overlay binary: ``$HEXIUM_OUT/hexium-v{VERSION}/chrome``.
+    """Local engine out: ``$HEXIUM_OUT/hexium-v{VERSION}/chrome``.
 
     After extract: ``chrome`` (Linux), ``chrome.exe`` (Windows), ``Hexium.app``
     (Darwin) — same layout as ``~/.hexium/hexium-v{VERSION}/``. If that file
-    is missing, fall back to legacy ``Hexium/chrome`` or ``$HEXIUM_OUT/chrome``
-    so an existing gn out dir still launches.
+    is missing, fall back to legacy ``Hexium/chrome`` or ``$HEXIUM_OUT/chrome``.
     """
     for path in default_hexium_binary_candidates(version):
         if path.is_file():
@@ -291,7 +290,7 @@ def get_default_hexium_binary_path(version: str | None = None) -> str:
 
 
 def default_hexium_binary_candidates(version: str | None = None) -> list[Path]:
-    """Preferred then legacy gn out locations for ``chrome``."""
+    """Preferred then legacy local-out locations for ``chrome``."""
     name = _gn_chrome_name()
     root = get_hexium_out_root()
     tagged_dir = root / hexium_out_dir_name(version)
@@ -431,7 +430,7 @@ def parse_hexium_engine_tag(tag_name: str) -> str | None:
 
 
 def get_local_binary_override() -> str | None:
-    """Local overlay chrome. ``HEXIUM_BINARY_PATH`` wins; ``HEXIUM_BINARY`` is an alias."""
+    """Local chrome. ``HEXIUM_BINARY_PATH`` wins; ``HEXIUM_BINARY`` is an alias."""
     for key in ("HEXIUM_BINARY_PATH", "HEXIUM_BINARY"):
         raw = os.environ.get(key)
         if raw and raw.strip():

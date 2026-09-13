@@ -29,4 +29,8 @@ Install `hexium-browser` first so `hexium-browser fetch` exists.
 - run: hexium-browser info --quick
 ```
 
-Inputs match issue [#5](https://github.com/HeadlessXLabs/hexium-browser/issues/5): `version`, `download-url`. The Action sets `HEXIUM_BINARY_PATH` and `HEXIUM_VERSION`.
+Local image:
+
+```bash
+docker build -t headlessxlabs/hexium-browser .
+```

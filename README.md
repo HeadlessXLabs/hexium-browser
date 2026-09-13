@@ -3,11 +3,16 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Latest_Version-0.1.0-026AFD?style=for-the-badge" alt="Latest Version 0.1.0">
-  <img src="https://img.shields.io/badge/Chromium-151.0.7922.174.1-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chromium 151.0.7922.174.1">
-  <img src="https://img.shields.io/badge/python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.9+">
-  <img src="https://img.shields.io/badge/Playwright-only-2EAD33?style=for-the-badge&logo=playwright&logoColor=white" alt="Playwright">
-  <a href="LICENSE.md"><img src="https://img.shields.io/badge/license-AGPL--3.0-A32D2D?style=for-the-badge" alt="AGPL-3.0"></a>
+  <a href="https://pypi.org/project/hexium-browser/"><img src="https://img.shields.io/pypi/v/hexium-browser?logo=pypi&logoColor=white" alt="PyPI"></a>
+  <a href="https://pypi.org/project/hexium-browser/"><img src="https://img.shields.io/pepy/dt/hexium-browser?label=pypi&logo=pypi&logoColor=white" alt="PyPI Downloads"></a>
+  <a href="https://hub.docker.com/r/headlessxlabs/hexium-browser"><img src="https://img.shields.io/docker/pulls/headlessxlabs/hexium-browser?label=docker&logo=docker&logoColor=white" alt="Docker Pulls"></a>
+  <a href="https://github.com/HeadlessXLabs/hexium-browser"><img src="https://img.shields.io/github/stars/HeadlessXLabs/hexium-browser" alt="Stars"></a>
+  <a href="https://github.com/HeadlessXLabs/hexium-browser"><img src="https://img.shields.io/github/last-commit/HeadlessXLabs/hexium-browser/develop" alt="Last Commit"></a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/github/license/HeadlessXLabs/hexium-browser" alt="License"></a>
+  <br>
+  <img src="https://img.shields.io/badge/Chromium-151-4285F4?logo=googlechrome&logoColor=white" alt="Chromium 151">
+  <img src="https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white" alt="Python 3.9+">
+  <img src="https://img.shields.io/badge/Playwright-only-2EAD33?logo=playwright&logoColor=white" alt="Playwright">
 </p>
 
 **Launch like Chrome. Stay undetected.**
@@ -64,6 +69,14 @@ python examples/open_google.py
 pip install hexium-browser
 pip install 'hexium-browser[geoip]'   # timezone / locale / WebRTC from egress IP
 hexium-browser fetch                  # Chrome 151 binary (Linux x86_64)
+```
+
+Docker (Linux x86_64, binary fetched at image build):
+
+```bash
+docker pull headlessxlabs/hexium-browser
+docker run --rm headlessxlabs/hexium-browser hexium-browser info --quick
+docker run --rm headlessxlabs/hexium-browser python -c "from hexium_browser import launch; b=launch(headless=True); b.close()"
 ```
 
 From this repo (if PyPI is not what you want):

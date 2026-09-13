@@ -5,19 +5,10 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-# Prefer Hexium engine bundle, then the historical Camoufox study pack.
-_ENGINE_WINDOWS_FONTS = Path("/Drive512/hexium/engine/bundle/fonts/windows")
-_ENGINE_WINDOWS_CONF = Path("/Drive512/hexium/engine/bundle/fontconfig/windows/fonts.conf")
-_CAMOUFOX_WINDOWS_FONTS = Path(
-    "/Drive512/hexium/study-repos/camoufox/bundle/fonts/windows"
-)
-_CAMOUFOX_WINDOWS_CONF = Path(
-    "/Drive512/hexium/study-repos/camoufox/bundle/fontconfig/windows/fonts.conf"
-)
 _PACKAGED_WINDOWS_CONF = Path(__file__).resolve().parent / "data" / "windows-fonts.conf"
 
-DEFAULT_WINDOWS_FONTS_DIR = _ENGINE_WINDOWS_FONTS
-DEFAULT_WINDOWS_FONTS_CONF = _ENGINE_WINDOWS_CONF
+DEFAULT_WINDOWS_FONTS_DIR = Path.home() / ".hexium" / "fonts" / "windows"
+DEFAULT_WINDOWS_FONTS_CONF = _PACKAGED_WINDOWS_CONF
 
 _CWD_DIR_TAG = '<dir prefix="cwd">fonts</dir>'
 _SEGOE_NAMES = ("segoeui.ttf", "segoeui.ttc", "seguisym.ttf")
@@ -40,7 +31,7 @@ def resolve_windows_fonts_dir(fonts_dir: str | os.PathLike | None = None) -> Pat
         if override:
             candidates = [Path(override).expanduser()]
         else:
-            candidates = [_ENGINE_WINDOWS_FONTS, _CAMOUFOX_WINDOWS_FONTS]
+            candidates = [DEFAULT_WINDOWS_FONTS_DIR]
     last_error: WindowsFontPackError | None = None
     for raw in candidates:
         path = raw.resolve()
@@ -72,15 +63,13 @@ def resolve_windows_fonts_conf(template: str | os.PathLike | None = None) -> Pat
     candidates = []
     if override:
         candidates.append(Path(override).expanduser())
-    candidates.extend(
-        [_ENGINE_WINDOWS_CONF, _CAMOUFOX_WINDOWS_CONF, _PACKAGED_WINDOWS_CONF]
-    )
+    candidates.extend([DEFAULT_WINDOWS_FONTS_CONF, _PACKAGED_WINDOWS_CONF])
     for src in candidates:
         if src.is_file():
             return src
     raise WindowsFontPackError(
-        "Windows fonts.conf missing. Need engine bundle fontconfig/windows/fonts.conf "
-        f"or packaged {_PACKAGED_WINDOWS_CONF}."
+        "Windows fonts.conf missing. Set HEXIUM_FONTS_CONF or ship "
+        f"packaged {_PACKAGED_WINDOWS_CONF}."
     )
 
 

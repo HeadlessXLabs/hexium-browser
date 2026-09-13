@@ -57,7 +57,6 @@ def test_generate_fontconfig_rewrites_dir_to_absolute(tmp_path, monkeypatch):
     assert conf_path.is_file()
 
 
-def test_default_fonts_dir_points_at_engine_windows_pack():
-    assert DEFAULT_WINDOWS_FONTS_DIR == Path(
-        "/Drive512/hexium/engine/bundle/fonts/windows"
-    )
+def test_default_fonts_dir_is_under_hexium_home():
+    assert DEFAULT_WINDOWS_FONTS_DIR == Path.home() / ".hexium" / "fonts" / "windows"
+    assert "Drive512" not in str(DEFAULT_WINDOWS_FONTS_DIR)
