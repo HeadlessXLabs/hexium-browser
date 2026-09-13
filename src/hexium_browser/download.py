@@ -269,7 +269,10 @@ def _extract_tar(archive_path: Path, dest_dir: Path) -> None:
                 if not str(member_path).startswith(str(dest_dir.resolve())):
                     raise RuntimeError(f"Archive contains path traversal: {member.name}")
             safe_members.append(member)
-        tar.extractall(dest_dir, members=safe_members)
+            extract_kwargs = {}
+            if sys.version_info >= (3, 12):
+                extract_kwargs["filter"] = "data"
+            tar.extractall(dest_dir, members=safe_members, **extract_kwargs)
 
 
 def _extract_zip(archive_path: Path, dest_dir: Path) -> None:

@@ -10,6 +10,12 @@ import pytest
 from hexium_browser.config import DEFAULT_VIEWPORT
 
 
+@pytest.fixture(autouse=True)
+def _allow_tmp_profile_in_this_module(monkeypatch):
+    """These unit tests mock Playwright and still pass a /tmp profile path."""
+    monkeypatch.setenv("HEXIUM_ALLOW_TMP_PROFILE", "1")
+
+
 def _make_mock_pw_and_context():
     """Create mock sync_playwright chain returning a mock context."""
     context = MagicMock()
@@ -190,7 +196,11 @@ def test_persistent_context_proxy_string(_mock_geoip, _mock_bin, _mock_platform)
 
     with patch("playwright.sync_api.sync_playwright", return_value=pw_cm):
         from hexium_browser.browser import launch_persistent_context
-        launch_persistent_context("/tmp/profile", proxy="http://user:pass@proxy:8080")
+        launch_persistent_context(
+            "/tmp/profile",
+            proxy="http://user:pass@proxy:8080",
+            browser_version="146.0.7680.177.3",
+        )
 
     call_kwargs = pw.chromium.launch_persistent_context.call_args[1]
     assert call_kwargs["proxy"]["server"] == "http://proxy:8080"
@@ -287,7 +297,8 @@ def test_persistent_context_seeds_widevine(_mock_seed, _mock_geoip, _mock_bin):
         from hexium_browser.browser import launch_persistent_context
         launch_persistent_context("/tmp/profile")
 
-    _mock_seed.assert_called_once_with("/tmp/profile", "/fake/chrome")
+    assert Path(_mock_seed.call_args[0][0]).resolve() == Path("/tmp/profile").resolve()
+    assert _mock_seed.call_args[0][1] == "/fake/chrome"
 
 
 @pytest.mark.asyncio
@@ -302,4 +313,5 @@ async def test_persistent_context_async_seeds_widevine(_mock_seed, _mock_geoip, 
         from hexium_browser.browser import launch_persistent_context_async
         await launch_persistent_context_async("/tmp/profile")
 
-    _mock_seed.assert_called_once_with("/tmp/profile", "/fake/chrome")
+    assert Path(_mock_seed.call_args[0][0]).resolve() == Path("/tmp/profile").resolve()
+    assert _mock_seed.call_args[0][1] == "/fake/chrome"

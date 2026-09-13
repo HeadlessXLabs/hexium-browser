@@ -80,12 +80,12 @@ class TestBuildProxyKwargs:
         assert args == []
         assert kwargs == {"proxy": {"server": "http://proxy:8080", "username": "user", "password": "pass"}}
 
-    @patch("hexium_browser.config.get_chromium_version", return_value="146.0.7680.177.5")
+    @patch("hexium_browser.config.get_chromium_version", return_value="151.0.7922.174.1")
     @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
     def test_pinned_new_version_keeps_inline_auth(self, *_):
-        # Pinning a version at/above the floor keeps inline credentials.
+        # Pinning a version at/above the 151 floor keeps inline credentials.
         kwargs, args = _resolve_proxy_config(
-            "http://user:pass@proxy:8080", browser_version="146.0.7680.177.5"
+            "http://user:pass@proxy:8080", browser_version="151.0.7922.174.1"
         )
         assert kwargs == {}
         assert args == ["--proxy-server=http://user:pass@proxy:8080"]
@@ -477,7 +477,9 @@ class TestResolveProxyConfig:
 
     @patch("hexium_browser.config.get_platform_tag", return_value="darwin-arm64")
     def test_http_string_with_creds_on_macos_falls_back(self, _mock):
-        kwargs, args = _resolve_proxy_config("http://user:pass@proxy:8080")
+        kwargs, args = _resolve_proxy_config(
+            "http://user:pass@proxy:8080", browser_version="146.0.7680.177.3"
+        )
         assert "proxy" in kwargs
         assert kwargs["proxy"]["username"] == "user"
         assert args == []
@@ -485,22 +487,22 @@ class TestResolveProxyConfig:
     @patch("hexium_browser.config.get_platform_tag", return_value="darwin-arm64")
     def test_http_dict_with_creds_on_macos_falls_back(self, _mock):
         proxy = {"server": "http://proxy:8080", "username": "user", "password": "pass"}
-        kwargs, args = _resolve_proxy_config(proxy)
+        kwargs, args = _resolve_proxy_config(proxy, browser_version="146.0.7680.177.3")
         assert kwargs == {"proxy": proxy}
         assert args == []
 
     @patch("hexium_browser.config.get_platform_tag", return_value="linux-arm64")
     def test_http_string_with_creds_on_linux_arm_falls_back(self, _mock):
-        kwargs, args = _resolve_proxy_config("http://user:pass@proxy:8080")
+        kwargs, args = _resolve_proxy_config(
+            "http://user:pass@proxy:8080", browser_version="146.0.7680.177.3"
+        )
         assert "proxy" in kwargs
         assert args == []
 
     @patch("hexium_browser.config.get_platform_tag", return_value="darwin-arm64")
     def test_http_with_creds_on_macos_inline_when_pinned_new(self, _mock):
-        # A macOS binary at/above the floor (e.g. a pinned 148 build with the
-        # inline proxy-auth patch) uses --proxy-server, not the fallback.
         kwargs, args = _resolve_proxy_config(
-            "http://user:pass@proxy:8080", browser_version="148.0.7778.215.3"
+            "http://user:pass@proxy:8080", browser_version="151.0.7922.174.1"
         )
         assert kwargs == {}
         assert args == ["--proxy-server=http://user:pass@proxy:8080"]
