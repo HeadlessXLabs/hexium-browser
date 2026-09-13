@@ -47,7 +47,8 @@ from .config import (
 
 logger = logging.getLogger("hexium_browser")
 
-DOWNLOAD_TIMEOUT = httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=10.0)
+DOWNLOAD_TIMEOUT = httpx.Timeout(connect=30.0, read=300.0, write=30.0, pool=10.0)
+DOWNLOAD_ATTEMPTS = 3
 
 
 def _missing_binary_message() -> str:
@@ -55,11 +56,10 @@ def _missing_binary_message() -> str:
     return (
         "Hexium browser binary not found.\n\n"
         "Options:\n"
-        "  1. Build the engine and set HEXIUM_BINARY_PATH\n"
-        f"  2. Use the default out path if built: {get_default_hexium_binary_path()}\n"
-        "     Archive: $HEXIUM_OUT/hexium-v{VERSION}/Hexium-{VERSION}-{platform}{ext}\n"
-        "  3. Run: hexium-browser fetch\n"
-        f"     GitHub: {get_github_download_url(version)}\n"
+        "  1. Run: hexium-browser fetch\n"
+        f"     {get_github_download_url(version)}\n"
+        "  2. Set HEXIUM_BINARY_PATH to an unpacked chrome executable\n"
+        "  3. Set HEXIUM_OUT if you already have a local engine out dir\n"
     )
 
 
@@ -69,7 +69,8 @@ def ensure_binary(
     """Ensure the Hexium Chromium binary is available. Returns executable path.
 
   By default does not download — use ``hexium-browser fetch`` or pass
-  ``allow_download=True``. Fetch tries headlessx.dev, then GitHub Releases.
+  ``allow_download=True``. Fetch tries GitHub Releases in CI, otherwise the
+  API host then GitHub. Any failed URL (including connection reset) tries the next.
     """
     override = get_local_binary_override()
     if override:
@@ -156,7 +157,7 @@ def fetch_latest_engine_version() -> str | None:
 
 
 def _download_and_extract(version: str | None = None) -> str:
-    """Download API first, then GitHub Releases; last try is the latest Hexium-* tag."""
+    """Try each download URL. Network errors fall through to the next host."""
     pinned = version or get_effective_version()
     candidates: list[str] = [pinned]
     latest = fetch_latest_engine_version()
@@ -171,27 +172,18 @@ def _download_and_extract(version: str | None = None) -> str:
         binary_dir.parent.mkdir(parents=True, exist_ok=True)
         with tempfile.NamedTemporaryFile(suffix=get_archive_ext(), delete=False) as tmp:
             tmp_path = Path(tmp.name)
+        downloaded = False
         try:
-            last_exc: Exception | None = None
             for url in urls:
-                try:
-                    _download_file(url, tmp_path)
-                    last_exc = None
+                if _try_download(url, tmp_path, errors):
+                    downloaded = True
                     break
-                except httpx.HTTPStatusError as exc:
-                    last_exc = exc
-                    status = exc.response.status_code
-                    logger.warning("Download %s failed (%s); trying next URL", url, status)
-                    if status not in {404, 403}:
-                        raise RuntimeError(f"Download failed: {exc}") from exc
-                    continue
-            if last_exc is not None:
-                errors.append(f"{engine_version}: {last_exc}")
+            if not downloaded:
                 continue
             _extract_archive(tmp_path, binary_dir, binary_path)
             return engine_version
         except Exception as exc:
-            errors.append(f"{engine_version}: {exc}")
+            errors.append(f"{engine_version} extract: {exc}")
         finally:
             tmp_path.unlink(missing_ok=True)
 
@@ -200,6 +192,33 @@ def _download_and_extract(version: str | None = None) -> str:
         f"Could not download Hexium binary (tried {hexium_engine_release_tag(pinned)}"
         f" then latest Hexium-* tag). {tried}\n\n{_missing_binary_message()}"
     )
+
+
+def _try_download(url: str, dest: Path, errors: list[str]) -> bool:
+    for attempt in range(1, DOWNLOAD_ATTEMPTS + 1):
+        try:
+            _download_file(url, dest)
+            return True
+        except httpx.HTTPStatusError as exc:
+            status = exc.response.status_code
+            logger.warning("Download %s failed HTTP %s", url, status)
+            errors.append(f"{url}: HTTP {status}")
+            if status in {401, 403, 404, 410}:
+                return False
+            if attempt < DOWNLOAD_ATTEMPTS:
+                time.sleep(attempt)
+        except (httpx.HTTPError, OSError) as exc:
+            logger.warning(
+                "Download %s failed (attempt %s/%s): %s",
+                url,
+                attempt,
+                DOWNLOAD_ATTEMPTS,
+                exc,
+            )
+            errors.append(f"{url}: {exc}")
+            if attempt < DOWNLOAD_ATTEMPTS:
+                time.sleep(attempt)
+    return False
 
 
 def _download_file(url: str, dest: Path) -> None:

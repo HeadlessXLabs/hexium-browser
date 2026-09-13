@@ -74,6 +74,7 @@ runs:
       shell: bash
       env:
         INPUT_DOWNLOAD_URL: ${{ inputs.download-url }}
+        HEXIUM_FETCH_GITHUB_FIRST: "1"
         HEXIUM_VERSION: ${{ steps.pin.outputs.version }}
         HEXIUM_GITHUB_TOKEN: ${{ github.token }}
         GITHUB_TOKEN: ${{ github.token }}

@@ -11,7 +11,7 @@ GitHub Actions on Ubuntu installs the Python package, restores the Hexium Chrome
 3. `pytest -m 'not slow'`
 4. Headless `launch()` to `about:blank`
 
-Cache key: `hexium-{VERSION}-{OS}-{linux-x64|linux-arm64}`. Miss → `hexium-browser fetch` (headlessx.dev API, then GitHub Releases `Hexium-{VERSION}`).
+On miss, `hexium-browser fetch` uses GitHub Releases first in Actions (the API host is fallback). Any failed URL, including connection reset, tries the next.
 
 ## Use the Action in another workflow
 

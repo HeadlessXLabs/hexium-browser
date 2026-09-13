@@ -73,7 +73,9 @@ class TestDownloadUrl:
             "Hexium-151.0.7922.174.1-linux-arm64.tar.gz"
         )
 
-    def test_github_fallback_format(self):
+    def test_github_fallback_format(self, monkeypatch):
+        monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+        monkeypatch.delenv("HEXIUM_FETCH_GITHUB_FIRST", raising=False)
         with patch("hexium_browser.config.platform.system", return_value="Linux"):
             with patch("hexium_browser.config.platform.machine", return_value="x86_64"):
                 url = get_github_download_url("151.0.7922.174.1")
@@ -88,6 +90,14 @@ class TestDownloadUrl:
         assert parse_hexium_engine_tag("v0.1.0") is None
         assert urls[0] == primary
         assert urls[1] == url
+
+    def test_github_first_on_actions(self, monkeypatch):
+        monkeypatch.setenv("GITHUB_ACTIONS", "true")
+        with patch("hexium_browser.config.platform.system", return_value="Linux"):
+            with patch("hexium_browser.config.platform.machine", return_value="x86_64"):
+                urls = get_download_urls("151.0.7922.174.1")
+        assert "github.com" in urls[0]
+        assert "headlessx.dev" in urls[1]
 
 
 class TestStealthArgs:

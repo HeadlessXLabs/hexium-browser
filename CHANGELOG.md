@@ -12,7 +12,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### [wrapper]
 
-- GitHub Action **Setup Hexium** (`.github/actions/setup-hexium`) caches `~/.hexium/hexium-v{VERSION}/` and runs `hexium-browser fetch` on miss. Ubuntu CI installs the package, restores the binary, runs `pytest -m 'not slow'`, and a headless `launch()` smoke.
+- Fetch: connection errors (reset, timeout) try the next URL instead of aborting. GitHub Actions downloads from GitHub Releases first.
 - `hexium-browser` **0.1.0** is on PyPI. `pip install hexium-browser` then `hexium-browser fetch`.
 
 ### [docs]

@@ -28,8 +28,7 @@ PLATFORM_CHROMIUM_VERSIONS: dict[str, str] = {
     "windows-x64": "151.0.7922.174.1",
 }
 
-# Local gn out root. Binary lives in hexium-v{VERSION}/ (same as download URLs).
-DEFAULT_HEXIUM_OUT_ROOT = "/Drive512/chrome/src/out"
+# Optional local out root. Only used when HEXIUM_OUT is set.
 
 # ---------------------------------------------------------------------------
 # Playwright default args to suppress — these leak automation signals.
@@ -244,11 +243,11 @@ def get_cache_dir() -> Path:
 
 
 def get_hexium_out_root() -> Path:
-    """Return the local gn ``out/`` directory (``HEXIUM_OUT`` or Drive512 default)."""
+    """Local engine out dir when ``HEXIUM_OUT`` is set; otherwise unused."""
     custom = os.environ.get("HEXIUM_OUT")
     if custom and custom.strip():
         return Path(custom.strip())
-    return Path(DEFAULT_HEXIUM_OUT_ROOT)
+    return Path.home() / ".hexium" / "local-out"
 
 
 def hexium_out_dir_name(version: str | None = None, tag: str | None = None) -> str:
@@ -405,11 +404,21 @@ def get_github_download_url(version: str | None = None, tag: str | None = None) 
     )
 
 
+def prefer_github_download() -> bool:
+    """GitHub Actions and ``HEXIUM_FETCH_GITHUB_FIRST`` try Releases before the API host."""
+    if _env_truthy("HEXIUM_FETCH_GITHUB_FIRST"):
+        return True
+    return _env_truthy("GITHUB_ACTIONS")
+
+
 def get_download_urls(version: str | None = None) -> list[str]:
-    """Try the API first; GitHub Releases is the fallback. Never duplicate the same URL."""
+    """API then GitHub Releases. GitHub first on Actions. Never duplicate URLs."""
     v = version or get_chromium_version()
+    api = get_download_url(v)
+    github = get_github_download_url(v)
+    ordered = (github, api) if prefer_github_download() else (api, github)
     urls: list[str] = []
-    for url in (get_download_url(v), get_github_download_url(v)):
+    for url in ordered:
         if url not in urls:
             urls.append(url)
     return urls
