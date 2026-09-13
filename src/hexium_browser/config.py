@@ -366,20 +366,22 @@ def get_archive_ext() -> str:
     return ".zip" if platform.system() == "Windows" else ".tar.gz"
 
 
-def get_archive_name(tag: str | None = None) -> str:
+def get_archive_name(tag: str | None = None, version: str | None = None) -> str:
+    """``Hexium-{VERSION}-{platform}.tar.gz`` (Windows: ``.zip``)."""
     t = tag or get_platform_tag()
-    return f"hexium-{t}{get_archive_ext()}"
+    v = version or get_chromium_version()
+    return f"Hexium-{v}-{t}{get_archive_ext()}"
 
 
 def get_hexium_out_archive_path(version: str | None = None, tag: str | None = None) -> Path:
     """Local fetch artifact: ``$HEXIUM_OUT/hexium-v{VERSION}/hexium-{platform}{ext}``."""
-    return get_hexium_out_root() / hexium_out_dir_name(version) / get_archive_name(tag)
+    return get_hexium_out_root() / hexium_out_dir_name(version) / get_archive_name(tag, version)
 
 
 def get_download_url(version: str | None = None) -> str:
     """Return the headlessx.dev download URL for the current platform."""
     v = version or get_chromium_version()
-    return f"{DOWNLOAD_BASE_URL}/hexium-v{v}/{get_archive_name()}"
+    return f"{DOWNLOAD_BASE_URL}/hexium-v{v}/{get_archive_name(version=v)}"
 
 
 def get_local_binary_override() -> str | None:

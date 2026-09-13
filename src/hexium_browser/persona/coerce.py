@@ -63,7 +63,8 @@ def coerce_fingerprint(fp: Any, seed: str) -> PersonaDict:
         "user_agent_product": "Chrome" if "Chrome/" in ua else str(nav.get("appName") or ""),
         "platform": platform,
         "ua_ch_platform": str(uad.get("platform") or _ua_ch_platform_from(platform)),
-        "ua_ch_model": str(uad.get("model") or "").strip(),
+        # Desktop Chrome: Client Hints ``model`` is empty (never a phone model).
+        "ua_ch_model": "",
         "languages": [str(item) for item in languages],
         "timezone_id": _DEFAULT_TIMEZONE,
         "screen_width": _int(screen.get("width"), 1920),

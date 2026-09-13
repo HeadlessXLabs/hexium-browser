@@ -40,7 +40,9 @@ from .download import ensure_binary
 from .persona.coerce import load_persona_json, write_persona_json
 from .persona.fonts import WindowsFontPackError, generate_windows_fontconfig
 from .persona.geo_overlay import apply_geoip
+from .persona.rewrite_ua import clamp_windows_ua_ch_platform_version, rewrite_chrome_version
 from .persona.sample import sample_linux_chrome, sample_windows_chrome
+from .persona.schema import CHROME_UA_VERSION
 from .human.config import HumanConfigOverrides, HumanPreset
 from .widevine import seed_widevine_hint
 
@@ -1440,6 +1442,14 @@ def _attach_persona_file(
             persona = sample_windows_chrome(seed)
         else:
             persona = sample_linux_chrome(seed)
+    else:
+        # Sticky profiles skip resampling; still keep UA/CH on this engine.
+        persona = rewrite_chrome_version(persona, CHROME_UA_VERSION)
+        persona["ua_ch_model"] = ""
+        if preset == "windows-chrome":
+            persona["ua_ch_platform_version"] = clamp_windows_ua_ch_platform_version(
+                str(persona.get("ua_ch_platform_version") or "")
+            )
     webrtc_ip = None
     webrtc_flag = seen.get("--hexium-webrtc-ip")
     if webrtc_flag and "=" in webrtc_flag:

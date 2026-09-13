@@ -35,7 +35,7 @@ Point `HEXIUM_BINARY_PATH` at Hexium `chrome`, or build into:
 $HEXIUM_OUT/Hexium-{platform}-{version}/chrome
 ```
 
-Example: `Hexium-linux-x64-151.0.7922.174.1/chrome`
+Example: `hexium-v151.0.7922.174.1/chrome` inside `Hexium-151.0.7922.174.1-linux-x64.tar.gz`
 
 ## Visual mouse pointer (headed debug)
 

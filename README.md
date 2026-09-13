@@ -19,11 +19,6 @@ Playwright in. Chrome 151 out. Built by HeadlessX Labs.
 Sites see **Google Chrome 151**. You see Hexium Browser — a C++ persona compiled into Chromium, persistent disk profiles, humanize, and GeoIP locale. No JS injectors.
 
 <p align="center">
-  <video src="assets/recordings/google_search_human.webm" width="800" controls playsinline muted></video>
-  <br><em>Headed Google search — <code>examples/google_search_human.py</code></em>
-</p>
-
-<p align="center">
   <video src="assets/recordings/google_search_human_headless_new_profile.webm" width="800" controls playsinline muted></video>
   <br><em>Headless Google search, new profile — <code>examples/google_search_human_headless_new_profile.py</code></em>
 </p>
@@ -31,6 +26,7 @@ Sites see **Google Chrome 151**. You see Hexium Browser — a C++ persona compil
 ## Features
 
 - Playwright `launch()` — headed and `--headless=new`
+- Linux x86_64 binary in this alpha (Windows and macOS not supported yet)
 - Persistent disk profiles (real tabs, not Incognito)
 - C++ persona presets — Linux default `linux-native`; see [Personas](#personas)
 - Seeded fingerprint sample (`fingerprint=` or auto `--hexium-seed=`) — not a new GPU every page
@@ -255,43 +251,35 @@ GeoIP does not re-roll the GPU. Explicit `timezone=` / `locale=` always win over
 
 ## Binary
 
-Hexium Browser ships a platform-tagged Chromium archive. Download URL and local out use the **same** naming:
+**Linux x86_64 only** for this alpha. Windows and macOS are not supported yet — we are actively working on them. Thanks for your patience.
+
+Archives are named **Hexium + engine version + OS + arch**:
 
 ```text
-${HEXIUM_DOWNLOAD_URL}/hexium-v{VERSION}/hexium-{platform}{ext}
-$HEXIUM_OUT/hexium-v{VERSION}/hexium-{platform}{ext}
+Hexium-{VERSION}-{os}-{arch}.tar.gz
 ```
 
-Example:
+This ship:
 
 ```text
-https://headlessx.dev/api/download/hexium-v151.0.7922.174.1/hexium-linux-x64.tar.gz
+Hexium-151.0.7922.174.1-linux-x64.tar.gz
 ```
 
-After extract, the runnable binary is next to that archive (same layout as `~/.hexium/hexium-v{VERSION}/`):
+Unpack it and you get `hexium-v151.0.7922.174.1/chrome` (same layout as `~/.hexium/hexium-v{VERSION}/`). Point `HEXIUM_BINARY_PATH` at that `chrome`, or let `hexium-browser fetch` unpack into the cache.
 
-| OS | Executable |
-| --- | --- |
-| Linux | `$HEXIUM_OUT/hexium-v{VERSION}/chrome` |
-| Windows | `$HEXIUM_OUT/hexium-v{VERSION}/chrome.exe` |
-| macOS | `$HEXIUM_OUT/hexium-v{VERSION}/Hexium.app` |
+Download the Linux tarball from GitHub Releases:
 
-| Platform | Tag | Archive |
-| --- | --- | --- |
-| Linux x86_64 | `linux-x64` | `hexium-linux-x64.tar.gz` |
-| Linux aarch64 | `linux-arm64` | `hexium-linux-arm64.tar.gz` |
-| macOS arm64 | `darwin-arm64` | `hexium-darwin-arm64.tar.gz` |
-| macOS x86_64 | `darwin-x64` | `hexium-darwin-x64.tar.gz` |
-| Windows x64 | `windows-x64` | `hexium-windows-x64.zip` |
+- Engine: [Hexium-151.0.7922.174.1](https://github.com/HeadlessXLabs/hexium-browser/releases/tag/Hexium-151.0.7922.174.1)
+- Python package: [hexium-browser-0.1.0](https://github.com/HeadlessXLabs/hexium-browser/releases/tag/v0.1.0)
 
 Resolution order:
 
 1. `HEXIUM_BINARY_PATH` (alias `HEXIUM_BINARY`)
 2. `$HEXIUM_OUT/hexium-v{VERSION}/chrome` if it exists
 3. Cache under `~/.hexium/hexium-v{VERSION}/`
-4. `hexium-browser fetch` from `https://headlessx.dev/api/download`
+4. `hexium-browser fetch` from `https://headlessx.dev/api/download` (when that tarball exists)
 
-Pin the engine with `HEXIUM_VERSION`. First ship: **linux-x64**.
+Pin the engine with `HEXIUM_VERSION`.
 
 | Env | Job |
 | --- | --- |

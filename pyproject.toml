@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
@@ -8,10 +8,12 @@ dynamic = ["version"]
 description = "Playwright launch() wrappers for Hexium-Browser."
 readme = "README.md"
 license = "AGPL-3.0-only"
+license-files = ["LICENSE.md", "BINARY-LICENSE.md"]
 requires-python = ">=3.9"
 authors = [
-    { name = "HeadlessXLabs" },
+    { name = "HeadlessXLabs", email = "hello@saify.me" },
 ]
+urls = { Homepage = "https://github.com/HeadlessXLabs/hexium-browser", Issues = "https://github.com/HeadlessXLabs/hexium-browser/issues", Changelog = "https://github.com/HeadlessXLabs/hexium-browser/blob/develop/CHANGELOG.md" }
 keywords = [
     "stealth",
     "browser",
@@ -27,6 +29,8 @@ keywords = [
     "automation",
 ]
 classifiers = [
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: POSIX :: Linux",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
@@ -58,7 +62,14 @@ path = "src/hexium_browser/_version.py"
 packages = ["src/hexium_browser"]
 
 [tool.hatch.build.targets.sdist]
-include = ["/src/hexium_browser"]
+include = [
+    "/src/hexium_browser",
+    "/README.md",
+    "/LICENSE.md",
+    "/BINARY-LICENSE.md",
+    "/CHANGELOG.md",
+    "/pyproject.toml",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

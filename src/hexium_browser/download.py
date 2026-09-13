@@ -3,7 +3,7 @@
 Resolution order for ``ensure_binary()``:
 1. ``HEXIUM_BINARY_PATH`` env (or alias ``HEXIUM_BINARY``; error if missing)
 2. ``$HEXIUM_OUT/hexium-v{VERSION}/chrome`` when the file exists
-   (archive artifact: ``$HEXIUM_OUT/hexium-v{VERSION}/hexium-{platform}{ext}``)
+   (archive artifact: ``$HEXIUM_OUT/hexium-v{VERSION}/Hexium-{VERSION}-{platform}{ext}``)
 3. Cached binary under ``~/.hexium/hexium-v{VERSION}/``
 4. Download only when ``allow_download=True`` (``hexium-browser fetch``)
 """
@@ -50,8 +50,8 @@ def _missing_binary_message() -> str:
         "Hexium browser binary not found.\n\n"
         "Options:\n"
         f"  1. Build the engine and set HEXIUM_BINARY_PATH\n"
-        f"  2. Use the default out path if built: {get_default_hexium_binary_path()}\n"
-        "     Archive: $HEXIUM_OUT/hexium-v{VERSION}/hexium-{platform}{ext}\n"
+        f        "  2. Use the default out path if built: {get_default_hexium_binary_path()}\n"
+        "     Archive: $HEXIUM_OUT/hexium-v{VERSION}/Hexium-{VERSION}-{platform}{ext}\n"
         f"  3. Run: hexium-browser fetch  (when headlessx.dev tarballs are available)\n"
     )
 

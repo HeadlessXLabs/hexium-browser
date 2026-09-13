@@ -57,7 +57,7 @@ class TestArchive:
     def test_archive_name(self):
         tag = get_platform_tag()
         ext = get_archive_ext()
-        assert get_archive_name() == f"hexium-{tag}{ext}"
+        assert get_archive_name() == f"Hexium-{get_chromium_version()}-{tag}{ext}"
 
 
 class TestDownloadUrl:
@@ -118,7 +118,7 @@ def test_default_binary_path_respects_hexium_out(monkeypatch, tmp_path):
             path = get_default_hexium_binary_path()
             archive = get_hexium_out_archive_path()
     assert path == str(tmp_path / "hexium-v151.0.7922.174.1" / "chrome")
-    assert archive == tmp_path / "hexium-v151.0.7922.174.1" / "hexium-linux-x64.tar.gz"
+    assert archive == tmp_path / "hexium-v151.0.7922.174.1" / "Hexium-151.0.7922.174.1-linux-x64.tar.gz"
 
 
 def test_default_binary_path_falls_back_to_legacy_out(monkeypatch, tmp_path):
