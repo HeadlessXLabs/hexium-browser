@@ -46,13 +46,14 @@ Do **not** run these on every push. They fire on `v*` tags (`v0.1.1`) or **workf
 
 Both **fail** if that version is already published (PyPI JSON 200, or Docker Hub tag 200). They do not overwrite `hexium-browser==0.1.0` or `saifyxpro/hexium-browser:0.1.1`. `latest` is only pushed after a **new** version tag check passes. Git tags must match `src/hexium_browser/_version.py`.
 
-Secrets / GitHub Environment:
+Repo secrets (Settings → Secrets and variables → Actions):
 
 | Name | Used by |
 | --- | --- |
-| GitHub Environment `pypi` | Trusted publishing (OIDC) and/or `PYPI_API_TOKEN` |
-| `PYPI_API_TOKEN` | PyPI (optional if Trusted Publisher is set) |
-| `DOCKERHUB_USERNAME` | Docker Hub |
+| `PYPI_API_TOKEN` | PyPI upload (`pypi-AgEIcHlwaS5vcmc…`) |
+| `DOCKERHUB_USERNAME` | Docker Hub login |
 | `DOCKERHUB_TOKEN` | Docker Hub access token |
+
+`id-token: write` is set so you can switch to PyPI Trusted Publishing later without a token. Do not set `skip-existing` — duplicates must fail.
 
 Engine tarball tags (`Hexium-151…`) do **not** trigger these workflows.
