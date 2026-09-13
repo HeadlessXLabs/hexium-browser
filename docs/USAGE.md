@@ -1,6 +1,6 @@
 # Usage
 
-Hexium Browser is Playwright `launch()` → patched Chromium 151. This page is the launch contract. The README stays the quickstart.
+Hexium Browser is Playwright `launch()` → patched Chromium 151. This page is the launch contract. The README stays the quickstart. GitHub Actions: [CI](CI.md).
 
 ```python
 from hexium_browser import launch

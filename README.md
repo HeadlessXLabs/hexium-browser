@@ -329,6 +329,7 @@ GeoIP is **on by default**. With `hexium-browser[geoip]`, Hexium maps the **egre
 | --- | --- |
 | [Changelog](CHANGELOG.md) | 0.1.0 alpha and later |
 | [Usage](docs/USAGE.md) | `launch()`, personas, GeoIP, humanize, profiles |
+| [CI](docs/CI.md) | Ubuntu Actions, Setup Hexium, pytest |
 | [Personas](docs/persona/README.md) | `linux-native`, `linux-chrome`, `windows-native`, `windows-chrome`, `macos-native` |
 | [Contributing](CONTRIBUTING.md) | Install, pytest, bug reports |
 | [Support](SUPPORT.md) | How to file issues |
@@ -420,13 +421,12 @@ For a one-shot session, `launch(args=["--disable-http2"])` forces HTTP/1.1. Only
 
 ## What's next
 
-Python `hexium_browser` already ships in this repo. First-party packages still to land (thin bindings over the same `launch()` contract — not a new fingerprint stack):
+Python `hexium_browser` already ships ([PyPI](https://pypi.org/project/hexium-browser/)). First-party packages still to land (thin bindings over the same `launch()` contract — not a new fingerprint stack):
 
 - [.NET / NuGet](https://github.com/HeadlessXLabs/hexium-browser/issues/1)
 - [npm](https://github.com/HeadlessXLabs/hexium-browser/issues/2)
 - [Go](https://github.com/HeadlessXLabs/hexium-browser/issues/3)
 - [Rust crate](https://github.com/HeadlessXLabs/hexium-browser/issues/4)
-- [GitHub Action that caches the Hexium binary](https://github.com/HeadlessXLabs/hexium-browser/issues/5)
 - [Java/JVM bindings](https://github.com/HeadlessXLabs/hexium-browser/issues/6) if demand appears
 
 ## License

@@ -17,7 +17,7 @@ Usage reference: [docs/USAGE.md](docs/USAGE.md). Personas: [docs/persona/](docs/
 
 ## What we will not debug here
 
-- Engine Chromium rebuilds — maintainers rebuild; see [CONTRIBUTING.md](CONTRIBUTING.md)
+- Engine Chromium rebuilds — this repo ships the wrapper; use GitHub Releases / `hexium-browser fetch`
 - CAPTCHA solving — Hexium does not solve CAPTCHAs
 - Security vulnerabilities — [SECURITY.md](SECURITY.md)
 

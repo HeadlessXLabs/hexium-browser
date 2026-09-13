@@ -10,6 +10,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
+### [wrapper]
+
+- GitHub Action **Setup Hexium** (`.github/actions/setup-hexium`) caches `~/.hexium/hexium-v{VERSION}/` and runs `hexium-browser fetch` on miss. Ubuntu CI installs the package, restores the binary, runs `pytest -m 'not slow'`, and a headless `launch()` smoke.
+- `hexium-browser` **0.1.0** is on PyPI. `pip install hexium-browser` then `hexium-browser fetch`.
+
+### [docs]
+
+- Install/CLI match PyPI. Engine tarball is documented on `Hexium-{VERSION}` releases only.
+- Wrapper markdown no longer includes Chromium rebuild commands.
+
 ---
 
 ## [0.1.0] — 2026-09-13

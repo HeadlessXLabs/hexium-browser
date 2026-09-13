@@ -2,18 +2,9 @@
 
 This repository is the Playwright `launch()` wrapper (`hexium_browser`). Hexium is **Playwright `launch()` → patched Chromium 151**. Python already ships. Other languages are GitHub issues, not invented APIs.
 
-## Do not run
+## Do not
 
-Never run `autoninja`, `gn gen`, `gclient sync`, `apply-overlay.sh`, or `precompile-hexium.sh`. Print a rebuild command; the **user** runs it. Never JS fingerprint inject / `addInitScript` stealth. Never document overlay paths, engine patch files, or Chromium `src/` layout in public docs.
-
-Maintainers rebuild with:
-
-```bash
-source ~/.bashrc
-cd "${CHROMIUM_SRC}"
-gn gen "${HEXIUM_OUT}" --args="$(cat ${HEXIUM_DEVELOP}/engine/gn/hexium_args.gn)"
-autoninja -C "${HEXIUM_OUT}" chrome
-```
+Never JS fingerprint inject / `addInitScript` stealth. Never document overlay paths, engine patch files, or Chromium `src/` layout in public docs. Never rebuild Chromium from this repo — use GitHub Releases and `hexium-browser fetch`.
 
 ## Product facts (do not invent)
 
@@ -24,11 +15,12 @@ autoninja -C "${HEXIUM_OUT}" chrome
 - UA Chrome **151.0.7922.174**. Engine pin `151.0.7922.174.1`
 - `windows-chrome` on Linux: known WebGL **−5%** pixel-vs-name tell — do not claim it is fixed
 - Bare `launch()` → new `~/.hexium/profiles/hexium-session-*`. Named `profile=` is sticky
-- Binary: `HEXIUM_BINARY_PATH` → `$HEXIUM_OUT/hexium-v{VERSION}/chrome` → `~/.hexium` → `hexium-browser fetch`. Not Playwright’s Chromium
+- Binary: `HEXIUM_BINARY_PATH` → `$HEXIUM_OUT/hexium-v{VERSION}/chrome` if present → `~/.hexium` → `hexium-browser fetch`. Not Playwright’s Chromium
 
 ## Pointers
 
 - [README.md](README.md) — marketing / quickstart
 - [docs/USAGE.md](docs/USAGE.md) — launch contract
+- [docs/CI.md](docs/CI.md) — Ubuntu Actions + Setup Hexium
 - [docs/persona/](docs/persona/) — per-preset notes
 - [CONTRIBUTING.md](CONTRIBUTING.md) — pytest, bugs

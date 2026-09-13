@@ -4,17 +4,24 @@ This repo is the **Python** Playwright wrapper: `from hexium_browser import laun
 
 ## Install the wrapper
 
-Python 3.9+. Use a venv. The package is not on PyPI yet.
+Python 3.9+. Use a venv.
+
+```bash
+pip install 'hexium-browser[geoip]'
+hexium-browser fetch
+```
+
+From a clone (pytest, docs edits):
 
 ```bash
 python -m pip install -e '.[dev,geoip]'
-```
-
-That installs Playwright’s **driver**. Do **not** `playwright install chromium` as the browser — `launch()` uses Hexium’s own Chrome 151 binary (`HEXIUM_BINARY_PATH`, `$HEXIUM_OUT/hexium-v{VERSION}/chrome`, `~/.hexium`, or `hexium-browser fetch`).
-
-```bash
+hexium-browser fetch
 hexium-browser info --quick
 ```
+
+That installs Playwright’s **driver**. Do **not** `playwright install chromium` — `launch()` uses Hexium’s Chrome 151 (`HEXIUM_BINARY_PATH`, `~/.hexium/hexium-v{VERSION}/`, or `hexium-browser fetch`).
+
+CI: [docs/CI.md](docs/CI.md).
 
 ## Tests
 
@@ -40,18 +47,9 @@ Stealth/oracle scripts should pass `humanize=True` and `show_cursor=False` (the 
 
 Open a GitHub issue with OS, `hexium_browser` version (`pip show hexium-browser`), persona, headed vs headless, and whether a proxy was used. See [SUPPORT.md](SUPPORT.md). Security reports go to [SECURITY.md](SECURITY.md), not a public issue.
 
-## Engine rebuild (maintainers only)
+## Engine binary
 
-Wrapper changes do not require a Chromium rebuild. If the **engine** binary must be rebuilt, **you** run it on a plugged-in machine. Agents must never run `autoninja`, `gn gen`, `gclient sync`, or `precompile-hexium.sh`.
-
-```bash
-source ~/.bashrc
-cd "${CHROMIUM_SRC}"
-gn gen "${HEXIUM_OUT}" --args="$(cat ${HEXIUM_DEVELOP}/engine/gn/hexium_args.gn)"
-autoninja -C "${HEXIUM_OUT}" chrome
-```
-
-Do not ask an agent to execute that block.
+This wrapper does not rebuild Chromium. Maintainers publish `Hexium-{VERSION}-linux-x64.tar.gz` on GitHub Releases. Everyone else runs `hexium-browser fetch` or sets `HEXIUM_BINARY_PATH`.
 
 ## Pull requests
 

@@ -1,0 +1,101 @@
+name: Setup Hexium
+description: Restore the Hexium Chrome binary under ~/.hexium/hexium-v{VERSION}/ (profiles are never cached). On miss, run hexium-browser fetch.
+inputs:
+  version:
+    description: Engine version pin (example 151.0.7922.174.1). Empty uses HEXIUM_VERSION or the installed wrapper pin.
+    required: false
+    default: ""
+  download-url:
+    description: Optional HEXIUM_DOWNLOAD_URL prefix. Empty keeps the wrapper default (API, then GitHub Releases).
+    required: false
+    default: ""
+outputs:
+  version:
+    description: Engine version that was restored or fetched
+    value: ${{ steps.pin.outputs.version }}
+  binary-path:
+    description: Path to chrome
+    value: ${{ steps.pin.outputs.binary-path }}
+  cache-hit:
+    description: Whether the GitHub Actions cache restored the binary directory
+    value: ${{ steps.cache.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - name: Pin engine version
+      id: pin
+      shell: bash
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        if [[ "${RUNNER_OS}" != "Linux" ]]; then
+          echo "This Action ships linux-x64 only in this alpha." >&2
+          exit 1
+        fi
+        ARCH="${RUNNER_ARCH}"
+        if [[ "${ARCH}" == "X64" ]]; then
+          PLATFORM="linux-x64"
+        elif [[ "${ARCH}" == "ARM64" ]]; then
+          PLATFORM="linux-arm64"
+        else
+          echo "Unsupported runner arch: ${ARCH}" >&2
+          exit 1
+        fi
+        VERSION="${INPUT_VERSION}"
+        if [[ -z "${VERSION}" && -n "${HEXIUM_VERSION:-}" ]]; then
+          VERSION="${HEXIUM_VERSION}"
+        fi
+        if [[ -z "${VERSION}" ]]; then
+          VERSION="$(python -c "from hexium_browser.config import get_chromium_version; print(get_chromium_version())")"
+        fi
+        CACHE_DIR="${HOME}/.hexium/hexium-v${VERSION}"
+        BINARY="${CACHE_DIR}/chrome"
+        {
+          echo "version=${VERSION}"
+          echo "platform=${PLATFORM}"
+          echo "cache-dir=${CACHE_DIR}"
+          echo "binary-path=${BINARY}"
+        } >> "${GITHUB_OUTPUT}"
+        echo "HEXIUM_VERSION=${VERSION}" >> "${GITHUB_ENV}"
+        echo "HEXIUM_CACHE_DIR=${HOME}/.hexium" >> "${GITHUB_ENV}"
+        echo "HEXIUM_BINARY_PATH=${BINARY}" >> "${GITHUB_ENV}"
+        echo "Pinned Hexium ${VERSION} (${PLATFORM})"
+
+    - name: Restore Hexium binary cache
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.pin.outputs.cache-dir }}
+        key: hexium-${{ steps.pin.outputs.version }}-${{ runner.os }}-${{ steps.pin.outputs.platform }}
+
+    - name: Fetch Hexium binary on cache miss
+      shell: bash
+      env:
+        INPUT_DOWNLOAD_URL: ${{ inputs.download-url }}
+        HEXIUM_VERSION: ${{ steps.pin.outputs.version }}
+        HEXIUM_GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        BINARY="${{ steps.pin.outputs.binary-path }}"
+        if [[ -x "${BINARY}" ]]; then
+          echo "Using cached ${BINARY}"
+          exit 0
+        fi
+        if ! command -v hexium-browser >/dev/null 2>&1; then
+          echo "hexium-browser CLI not on PATH. pip install hexium-browser (or pip install -e .) first." >&2
+          exit 1
+        fi
+        if [[ -n "${INPUT_DOWNLOAD_URL}" ]]; then
+          export HEXIUM_DOWNLOAD_URL="${INPUT_DOWNLOAD_URL}"
+        fi
+        unset HEXIUM_BINARY_PATH
+        hexium-browser fetch
+        if [[ ! -x "${BINARY}" ]]; then
+          echo "Fetch finished but ${BINARY} is missing." >&2
+          hexium-browser info --quick || true
+          exit 1
+        fi
+        echo "Fetched ${BINARY}"
