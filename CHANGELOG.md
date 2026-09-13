@@ -10,14 +10,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
-### [wrapper]
-
-- `hexium-browser fetch` extracts the engine tarball once. A loop around `tar.extractall` made CI look stuck after “Extracting to ~/.hexium/hexium-v…”.
-
-### [docs]
-
-- Maintainer ship checklist: [`UPDATE.md`](UPDATE.md).
-
 ---
 
 ## [0.1.1] — 2026-09-13
@@ -30,6 +22,7 @@ PyPI [`hexium-browser` 0.1.1](https://pypi.org/project/hexium-browser/0.1.1/) an
 - Publish workflows (`.github/workflows/publish-pypi.yml`, `publish-docker.yml`) on `v*` tags. They fail if PyPI or Docker Hub already has that version (no silent overwrite).
 - Windows fonts: `HEXIUM_FONTS_DIR` / `~/.hexium/fonts/windows` (no machine-local default path).
 - Docker image `saifyxpro/hexium-browser` — Xvfb + geoip extra + Linux Chrome 151 pre-fetched at build. linux/amd64 only.
+- `hexium-browser fetch` extracts the engine tarball once (an inner `tar.extractall` loop made CI look stuck after the 192 MB download).
 
 ### [docs]
 
