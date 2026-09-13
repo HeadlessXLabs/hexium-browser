@@ -24,3 +24,10 @@ credentials.json
 .idea/
 .vscode/
 *.orig
+
+Hexium-*.tar.gz
+Hexium-*.tar.gz.sha256
+/hexium-v*/
+
+UPDATE.md
+UPDATE.local.md
