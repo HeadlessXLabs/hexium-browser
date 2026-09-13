@@ -68,7 +68,7 @@ launch(persona="windows-chrome", fingerprint="account-1")
 
 ## GeoIP
 
-On by default. With `pip install -e '.[geoip]'`, Hexium maps the **egress IP** (proxy exit, or the machine public IP) to timezone, locale, `navigator.languages`, and `--hexium-webrtc-ip=`.
+On by default. With `pip install 'hexium-browser[geoip]'`, Hexium maps the **egress IP** (proxy exit, or the machine public IP) to timezone, locale, `navigator.languages`, and `--hexium-webrtc-ip=`.
 
 - `geoip=False` opts out
 - Explicit `timezone=` / `locale=` always win
@@ -95,6 +95,7 @@ Hexium is a real Chrome user-data-dir, not Incognito.
 
 ```bash
 hexium-browser profiles
+hexium-browser profiles list
 hexium-browser profiles new Work
 hexium-browser profiles use Work
 hexium-browser profiles last
@@ -114,9 +115,18 @@ Resolution order:
 1. `HEXIUM_BINARY_PATH` (alias `HEXIUM_BINARY`)
 2. `$HEXIUM_OUT/hexium-v{VERSION}/chrome` if it exists
 3. Cache under `~/.hexium/hexium-v{VERSION}/`
-4. `hexium-browser fetch` from `https://headlessx.dev/api/download`
+4. `hexium-browser fetch` — `https://headlessx.dev/api/download`, then GitHub
+   `https://github.com/HeadlessXLabs/hexium-browser/releases/download/Hexium-{VERSION}/Hexium-{VERSION}-linux-x64.tar.gz`
+   (latest `Hexium-*` tag if that version 404s). Binary is only on engine releases, not `vX.Y.Z`.
 
 Pin with `HEXIUM_VERSION`. First ship: **linux-x64**. Engine version: `151.0.7922.174.1`.
+
+```bash
+pip install hexium-browser
+pip install 'hexium-browser[geoip]'
+hexium-browser fetch
+hexium-browser info --quick
+```
 
 ## Recommended anti-bot config
 

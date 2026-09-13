@@ -1,5 +1,3 @@
-# Hexium Browser
-
 <p align="center">
   <img src="assets/banners/hexium-banner.png" alt="Hexium Browser — Launch like Chrome. Stay undetected." width="100%">
 </p>
@@ -62,26 +60,44 @@ python examples/open_google.py
 
 ## Install
 
-The Python package is **not** on PyPI. Install from source:
-
 ```bash
-pip install -e '.[geoip]'
+pip install hexium-browser
+pip install 'hexium-browser[geoip]'   # timezone / locale / WebRTC from egress IP
+hexium-browser fetch                  # Chrome 151 binary (Linux x86_64)
 ```
 
-Requires Python 3.9+ and the Playwright **driver** (ships with the `playwright` package). Do **not** install Playwright’s Chromium as the browser — Hexium launches its own Chrome 151 binary.
-
-Optional GeoIP extra: `geoip2` + `socksio`. GeoIP is on by default; without the extra, launch continues and timezone stays the sampled UTC.
-
-## Profiles
-
-Hexium is a real Chrome user-data-dir, not Incognito. Bare `launch()` creates a new `~/.hexium/profiles/hexium-session-*` and a new fingerprint. Named profiles stick:
+From this repo (if PyPI is not what you want):
 
 ```bash
-hexium-browser profiles
+pip install 'hexium-browser[geoip] @ git+https://github.com/HeadlessXLabs/hexium-browser.git@v0.1.0'
+hexium-browser fetch
+```
+
+Requires Python 3.9+ and the Playwright **driver** (ships with the `playwright` package). Do **not** `playwright install chromium` — Hexium launches its own Chrome 151 binary.
+
+GeoIP is on by default; without the extra, launch continues and timezone stays the sampled UTC.
+
+## CLI
+
+```bash
+hexium-browser fetch          # download the engine (API, then GitHub Releases)
+hexium-browser install        # alias for fetch
+hexium-browser info           # wrapper + binary diagnostics
+hexium-browser info --quick   # skip launching chrome --version
+hexium-browser info --json
+hexium-browser info --proxy socks5://user:pass@host:1080
+hexium-browser doctor         # alias for info
+hexium-browser clear-cache    # delete ~/.hexium cached binaries
+hexium-browser profiles       # list named profiles
+hexium-browser profiles list
 hexium-browser profiles new Work
 hexium-browser profiles use Work
 hexium-browser profiles last
 ```
+
+## Profiles
+
+Hexium is a real Chrome user-data-dir, not Incognito. Bare `launch()` creates a new `~/.hexium/profiles/hexium-session-*` and a new fingerprint. Named profiles stick. `profiles use` only records the last name for the CLI; `launch()` still needs `profile="Work"` (or `HEXIUM_USER_DATA_DIR`) to reopen it.
 
 ```python
 from hexium_browser import launch
@@ -265,33 +281,42 @@ This ship:
 Hexium-151.0.7922.174.1-linux-x64.tar.gz
 ```
 
-Unpack it and you get `hexium-v151.0.7922.174.1/chrome` (same layout as `~/.hexium/hexium-v{VERSION}/`). Point `HEXIUM_BINARY_PATH` at that `chrome`, or let `hexium-browser fetch` unpack into the cache.
+Unpack it and you get `hexium-v151.0.7922.174.1/chrome` (same layout as `~/.hexium/hexium-v{VERSION}/`). Point `HEXIUM_BINARY_PATH` at that `chrome`, or run `hexium-browser fetch`.
 
-Download the Linux tarball from GitHub Releases:
+The tarball is attached **once**, on the engine release — not on Python `vX.Y.Z` tags:
 
-- Engine: [Hexium-151.0.7922.174.1](https://github.com/HeadlessXLabs/hexium-browser/releases/tag/Hexium-151.0.7922.174.1)
-- Python package: [hexium-browser-0.1.0](https://github.com/HeadlessXLabs/hexium-browser/releases/tag/v0.1.0)
+- Engine + binary: [Hexium-151.0.7922.174.1](https://github.com/HeadlessXLabs/hexium-browser/releases/tag/Hexium-151.0.7922.174.1)
+- Python package notes: [Hexium_browser-0.1.0](https://github.com/HeadlessXLabs/hexium-browser/releases/tag/v0.1.0)
+
+`hexium-browser fetch` tries `https://headlessx.dev/api/download` first. On 404 it downloads:
+
+```text
+https://github.com/HeadlessXLabs/hexium-browser/releases/download/Hexium-{VERSION}/Hexium-{VERSION}-linux-x64.tar.gz
+```
+
+If that version is gone, fetch takes the newest GitHub tag named `Hexium-*` (never the Python `v0.1.0` tag).
 
 Resolution order:
 
 1. `HEXIUM_BINARY_PATH` (alias `HEXIUM_BINARY`)
 2. `$HEXIUM_OUT/hexium-v{VERSION}/chrome` if it exists
 3. Cache under `~/.hexium/hexium-v{VERSION}/`
-4. `hexium-browser fetch` from `https://headlessx.dev/api/download` (when that tarball exists)
+4. `hexium-browser fetch` — headlessx.dev API, then GitHub Releases `Hexium-{VERSION}`
 
 Pin the engine with `HEXIUM_VERSION`.
 
 | Env | Job |
 | --- | --- |
-| `HEXIUM_DOWNLOAD_URL` | Download prefix (default `https://headlessx.dev/api/download`) |
+| `HEXIUM_DOWNLOAD_URL` | Primary download prefix (default `https://headlessx.dev/api/download`) |
 | `HEXIUM_VERSION` | Engine version (`151.0.7922.174.1`) |
 | `HEXIUM_BINARY_PATH` | Exact `chrome` path |
 | `HEXIUM_OUT` | Local out root |
 | `HEXIUM_CACHE_DIR` | Cache root (`~/.hexium`) |
+| `HEXIUM_GITHUB_REPO` | Releases repo (default `HeadlessXLabs/hexium-browser`) |
 
 ```bash
-hexium-browser info
 hexium-browser fetch
+hexium-browser info --quick
 ```
 
 ## GeoIP
@@ -354,7 +379,7 @@ browser = launch(
 )
 ```
 
-`geoip=True` needs `pip install -e '.[geoip]'`. Without the extra, launch still works and timezone stays the sampled UTC.
+`geoip=True` needs `pip install 'hexium-browser[geoip]'`. Without the extra, launch still works and timezone stays the sampled UTC.
 
 If the proxy supports SOCKS5, prefer it — SOCKS5 tunnels raw TCP and avoids HTTP CONNECT issues some proxies have with HTTP/2:
 

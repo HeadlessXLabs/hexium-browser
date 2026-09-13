@@ -361,6 +361,12 @@ DOWNLOAD_BASE_URL = os.environ.get(
     "https://headlessx.dev/api/download",
 )
 
+GITHUB_RELEASES_REPO = os.environ.get(
+    "HEXIUM_GITHUB_REPO",
+    "HeadlessXLabs/hexium-browser",
+)
+_ENGINE_TAG_RE = re.compile(r"^Hexium-(\d+(?:\.\d+)+)$")
+
 
 def get_archive_ext() -> str:
     return ".zip" if platform.system() == "Windows" else ".tar.gz"
@@ -374,14 +380,45 @@ def get_archive_name(tag: str | None = None, version: str | None = None) -> str:
 
 
 def get_hexium_out_archive_path(version: str | None = None, tag: str | None = None) -> Path:
-    """Local fetch artifact: ``$HEXIUM_OUT/hexium-v{VERSION}/hexium-{platform}{ext}``."""
+    """Local fetch artifact: ``$HEXIUM_OUT/hexium-v{VERSION}/Hexium-{VERSION}-{platform}{ext}``."""
     return get_hexium_out_root() / hexium_out_dir_name(version) / get_archive_name(tag, version)
 
 
+def hexium_engine_release_tag(version: str | None = None) -> str:
+    """GitHub tag that owns the tarball: ``Hexium-{VERSION}``."""
+    return f"Hexium-{version or get_chromium_version()}"
+
+
 def get_download_url(version: str | None = None) -> str:
-    """Return the headlessx.dev download URL for the current platform."""
+    """Primary CDN URL (``HEXIUM_DOWNLOAD_URL`` / headlessx.dev)."""
     v = version or get_chromium_version()
-    return f"{DOWNLOAD_BASE_URL}/hexium-v{v}/{get_archive_name(version=v)}"
+    return f"{DOWNLOAD_BASE_URL.rstrip('/')}/hexium-v{v}/{get_archive_name(version=v)}"
+
+
+def get_github_download_url(version: str | None = None, tag: str | None = None) -> str:
+    """GitHub Release asset for this engine version (not the Python ``vX.Y.Z`` tag)."""
+    v = version or get_chromium_version()
+    archive = get_archive_name(tag, v)
+    return (
+        f"https://github.com/{GITHUB_RELEASES_REPO}/releases/download/"
+        f"{hexium_engine_release_tag(v)}/{archive}"
+    )
+
+
+def get_download_urls(version: str | None = None) -> list[str]:
+    """Try the API first; GitHub Releases is the fallback. Never duplicate the same URL."""
+    v = version or get_chromium_version()
+    urls: list[str] = []
+    for url in (get_download_url(v), get_github_download_url(v)):
+        if url not in urls:
+            urls.append(url)
+    return urls
+
+
+def parse_hexium_engine_tag(tag_name: str) -> str | None:
+    """Return the engine version from a ``Hexium-151.0.7922.174.1`` tag, else None."""
+    match = _ENGINE_TAG_RE.match((tag_name or "").strip())
+    return match.group(1) if match else None
 
 
 def get_local_binary_override() -> str | None:

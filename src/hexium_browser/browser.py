@@ -373,7 +373,7 @@ def launch(
         geoip: Map timezone, locale, and ``navigator.languages`` to the egress IP
             (proxy exit, or the machine public IP when there is no proxy). Default
             True. Pass ``geoip=False`` to opt out. Explicit ``timezone=`` /
-            ``locale=`` still win. Requires ``pip install hexium_browser[geoip]``.
+            ``locale=`` still win. Requires ``pip install 'hexium-browser[geoip]'``.
         humanize: Human-like mouse, keys, scroll (default True).
         show_cursor: Virtual mouse pointer (standard arrow; OS cursor does
             not move). Default follows ``humanize``. Pass ``False`` on
@@ -515,7 +515,7 @@ def launch_persistent_context(
         geoip: Map timezone, locale, and ``navigator.languages`` to the egress IP
             (proxy exit, or the machine public IP when there is no proxy). Default
             True. Pass ``geoip=False`` to opt out. Explicit ``timezone=`` /
-            ``locale=`` still win. Requires ``pip install hexium_browser[geoip]``.
+            ``locale=`` still win. Requires ``pip install 'hexium-browser[geoip]'``.
         humanize: Enable human-like mouse, keyboard, scroll behavior (default True).
         human_preset: Humanize preset — 'default' or 'careful' (default 'default').
         human_config: Custom humanize config mapping to override preset values.

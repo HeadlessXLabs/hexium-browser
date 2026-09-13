@@ -127,7 +127,9 @@ def _print_diagnostics(diag: dict) -> None:
     print(f"Installed: {binary.get('installed')}")
     if binary.get("cache_dir"):
         print(f"Cache:     {binary['cache_dir']}")
-    print(f"Download:  {binary.get('download_url')}")
+        print(f"Download:  {binary.get('download_url')}")
+        if binary.get("github_download_url"):
+            print(f"GitHub:    {binary['github_download_url']}")
 
     launch = diag["launch"]
     if not launch.get("tested"):

@@ -9,7 +9,7 @@ Resolution order (`ensure_binary()`):
 1. `HEXIUM_BINARY_PATH` if set (`HEXIUM_BINARY` is an alias)
 2. Default local Hexium `chrome` if that file exists
 3. Cached binary under `~/.hexium`
-4. `hexium-browser fetch` only when tarballs exist (`allow_download=True`)
+4. `hexium-browser fetch` (`allow_download=True`) — API then GitHub `Hexium-{VERSION}`
 
 Do **not** `playwright install chromium` as the browser. Install the Playwright **driver** only if missing.
 

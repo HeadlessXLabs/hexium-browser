@@ -18,13 +18,17 @@ from hexium_browser.config import (
     get_default_hexium_binary_path,
     get_default_stealth_args,
     get_download_url,
+    get_download_urls,
+    get_github_download_url,
     get_hexium_out_archive_path,
     get_hexium_out_root,
     get_local_binary_override,
     get_platform_tag,
+    hexium_engine_release_tag,
     hexium_out_dir_name,
     linux_headed_gui_args,
     normalize_requested_version,
+    parse_hexium_engine_tag,
     seed_classic_theme_prefs,
     default_hexium_binary_candidates,
 )
@@ -65,6 +69,25 @@ class TestDownloadUrl:
         url = get_download_url("151.0.7922.174.1")
         assert "headlessx.dev/api/download" in url
         assert "hexium-v151.0.7922.174.1" in url
+        assert url.endswith("Hexium-151.0.7922.174.1-linux-x64.tar.gz") or url.endswith(
+            "Hexium-151.0.7922.174.1-linux-arm64.tar.gz"
+        )
+
+    def test_github_fallback_format(self):
+        with patch("hexium_browser.config.platform.system", return_value="Linux"):
+            with patch("hexium_browser.config.platform.machine", return_value="x86_64"):
+                url = get_github_download_url("151.0.7922.174.1")
+                primary = get_download_url("151.0.7922.174.1")
+                urls = get_download_urls("151.0.7922.174.1")
+        assert url == (
+            "https://github.com/HeadlessXLabs/hexium-browser/releases/download/"
+            "Hexium-151.0.7922.174.1/Hexium-151.0.7922.174.1-linux-x64.tar.gz"
+        )
+        assert hexium_engine_release_tag("151.0.7922.174.1") == "Hexium-151.0.7922.174.1"
+        assert parse_hexium_engine_tag("Hexium-151.0.7922.174.1") == "151.0.7922.174.1"
+        assert parse_hexium_engine_tag("v0.1.0") is None
+        assert urls[0] == primary
+        assert urls[1] == url
 
 
 class TestStealthArgs:

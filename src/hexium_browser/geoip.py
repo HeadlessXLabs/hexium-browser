@@ -1,6 +1,6 @@
 """GeoIP-based timezone and locale detection from proxy IP.
 
-Optional: ``pip install hexium_browser[geoip]``. Missing ``geoip2`` logs a
+Optional: ``pip install 'hexium-browser[geoip]'``. Missing ``geoip2`` logs a
 warning and still returns the exit IP (never aborts ``launch()``).
 
 Downloads GeoLite2-City.mmdb (~70 MB) on first use, caches in
@@ -148,7 +148,7 @@ def resolve_proxy_geo_with_ip(
     except ImportError:
         logger.warning(
             "geoip2 is not installed; continuing without timezone/locale. "
-            "Optional: pip install 'hexium_browser[geoip]'"
+            "Optional: pip install 'hexium-browser[geoip]'"
         )
         ip = _resolve_exit_ip(proxy_url)
         return None, None, ip
@@ -320,7 +320,7 @@ def _resolve_exit_ip(proxy_url: str | None, timeout: float | None = None) -> str
             return ip
         except httpx.UnsupportedProtocol:
             logger.warning(
-                "SOCKS5 proxy requires socksio: pip install 'hexium_browser[geoip]'"
+                "SOCKS5 proxy requires socksio: pip install 'hexium-browser[geoip]'"
             )
             return None
         except Exception:

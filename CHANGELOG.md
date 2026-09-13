@@ -37,9 +37,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - `from hexium_browser import launch` — drop-in Playwright Chromium launch. `launch_persistent_context` only (real user-data-dir, not Incognito).
 - Bare `launch()` mints `~/.hexium/profiles/hexium-session-*` and a new fingerprint. `profile="Work"` / `HEXIUM_USER_DATA_DIR` / `fingerprint="account-1"` stick.
 - CLI: `hexium-browser info`, `fetch`, `profiles` (`new` / `use` / `last`).
-- Auto-download linux-x64 from `https://headlessx.dev/api/download` (pin with `HEXIUM_VERSION`). `HEXIUM_BINARY_PATH` / `$HEXIUM_OUT` win when set.
+- Auto-download linux-x64 from `https://headlessx.dev/api/download`, then GitHub Releases `Hexium-{VERSION}` (pin with `HEXIUM_VERSION`). `HEXIUM_BINARY_PATH` / `$HEXIUM_OUT` win when set.
 - `humanize=True` by default — Bézier mouse, per-character typing, scroll. Virtual mouse pointer follows CDP moves; pass `show_cursor=False` on stealth oracles (DOM tell).
-- GeoIP **on by default** (`pip install -e '.[geoip]'`). Egress IP → timezone, `navigator.languages`, WebRTC mask IP. Explicit `timezone=` / `locale=` win. Without the extra, launch continues; timezone stays sampled UTC.
+- GeoIP **on by default** (`pip install 'hexium-browser[geoip]'`). Egress IP → timezone, `navigator.languages`, WebRTC mask IP. Explicit `timezone=` / `locale=` win. Without the extra, launch continues; timezone stays sampled UTC.
 - `windows-chrome` on Linux: fontconfig jail + Segoe pack (`HEXIUM_FONTS_DIR` or engine bundle). Incomplete pack warns once (`HEXIUM_SUPPRESS_FONT_WARNING=1`). Headless WebGPU flags only for that persona.
 - Sampled `linux-chrome` / `windows-chrome` write `persona.json` next to the profile; natives do not.
 - SOCKS5 and HTTP(S) proxies, including `user:pass@host:port`.
