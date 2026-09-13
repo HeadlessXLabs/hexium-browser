@@ -25,7 +25,7 @@ PyPI [`hexium-browser` 0.1.1](https://pypi.org/project/hexium-browser/0.1.1/) an
 
 ### [docs]
 
-- README: PyPI / pepy / Docker Hub (`saifyxpro`) badges, Docker install (`:0.1.1` / `:latest`, profile volume), hero demo as GIF (GitHub README does not play repo `.webm`).
+- README: PyPI / pepy / Docker Hub (`saifyxpro`) badges, Docker install (`:0.1.1` / `:latest`, profile volume), hero demo as GIF.
 - Setup Hexium Action + Ubuntu CI. Engine tarball only on `Hexium-{VERSION}` releases.
 
 ---

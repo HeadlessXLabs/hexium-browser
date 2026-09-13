@@ -25,7 +25,7 @@ Sites see **Google Chrome 151**. You see Hexium Browser — a C++ persona compil
   <a href="assets/recordings/google_search_human_headless_new_profile.webm">
     <img src="assets/recordings/google_search_human_headless_new_profile.gif" alt="Headless Google search, new profile" width="800">
   </a>
-  <br><em>Headless Google search, new profile — <code>examples/google_search_human_headless_new_profile.py</code>. GitHub README does not play repo <code>.webm</code>; click for the recording.</em>
+  <br><em>Headless Google search, new profile — <code>examples/google_search_human_headless_new_profile.py</code></em>
 </p>
 
 ## Features
