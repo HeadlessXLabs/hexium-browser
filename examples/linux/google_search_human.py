@@ -20,7 +20,7 @@ SEARCH_BOX = 'textarea[name="q"]'
 SEARCH_SUBMIT = "form button.plR5qb.VzUPFe.PHjFye.Sw4CSc"
 QUERY = "Nextjs Latest version"
 WAIT_MS = 5_000
-HIGHLIGHTER = Path(__file__).resolve().parent / "assets" / "cursor_highlighter.js"
+HIGHLIGHTER = Path(__file__).resolve().parent.parent / "assets" / "cursor_highlighter.js"
 RECORDING_NAME = "google_search_human"
 
 

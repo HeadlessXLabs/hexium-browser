@@ -4,10 +4,10 @@ One persistent Chrome, one tab, domcontentloaded + hold, no extra tabs
 and no session-restore pile-on.
 
 Usage:
-    python examples/stealth_test.py
-    python examples/stealth_test.py --headed     # watch in real-time
-    python examples/stealth_test.py --no-screenshots
-    python examples/stealth_test.py --proxy http://10.50.96.5:8888
+    python examples/linux/stealth_test.py
+    python examples/linux/stealth_test.py --headed     # watch in real-time
+    python examples/linux/stealth_test.py --no-screenshots
+    python examples/linux/stealth_test.py --proxy http://10.50.96.5:8888
 """
 
 import json

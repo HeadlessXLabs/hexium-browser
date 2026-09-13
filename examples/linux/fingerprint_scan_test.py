@@ -7,9 +7,9 @@ Tests the specific headless detection signals flagged by the community:
 - Full CreepJS signal breakdown (likeHeadless, headless, stealth)
 
 Usage:
-    python examples/fingerprint_scan_test.py
-    python examples/fingerprint_scan_test.py --proxy http://10.50.96.5:8888
-    python examples/fingerprint_scan_test.py --headless
+    python examples/linux/fingerprint_scan_test.py
+    python examples/linux/fingerprint_scan_test.py --proxy http://10.50.96.5:8888
+    python examples/linux/fingerprint_scan_test.py --headless
 """
 
 import sys

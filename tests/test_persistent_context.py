@@ -50,6 +50,22 @@ def test_persistent_context_args_built(_mock_geoip, _mock_bin):
 
 @patch("hexium_browser.browser.ensure_binary", return_value="/fake/chrome")
 @patch("hexium_browser.browser.maybe_resolve_geoip", return_value=(None, None, None))
+def test_persistent_context_ignores_playwright_swiftshader(_mock_geoip, _mock_bin):
+    """Playwright's software GL fallback must not reach Chromium."""
+    pw_cm, pw, context = _make_mock_pw_and_context()
+
+    with patch("playwright.sync_api.sync_playwright", return_value=pw_cm):
+        from hexium_browser.browser import launch_persistent_context
+        launch_persistent_context("/tmp/profile", headless=True)
+
+    call_kwargs = pw.chromium.launch_persistent_context.call_args[1]
+    ignored = call_kwargs["ignore_default_args"]
+    assert "--enable-unsafe-swiftshader" in ignored
+    assert "--enable-automation" in ignored
+
+
+@patch("hexium_browser.browser.ensure_binary", return_value="/fake/chrome")
+@patch("hexium_browser.browser.maybe_resolve_geoip", return_value=(None, None, None))
 def test_persistent_context_default_viewport(_mock_geoip, _mock_bin):
     """Chrome 151 headless uses no_viewport (real window size), not DEFAULT_VIEWPORT."""
     pw_cm, pw, context = _make_mock_pw_and_context()

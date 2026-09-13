@@ -32,6 +32,7 @@ from .config import (
     get_default_hexium_binary_path,
     get_default_stealth_args,
     linux_headed_gui_args,
+    linux_headless_gl_args,
     normalize_persona_preset,
     seed_classic_theme_prefs,
 )
@@ -1295,6 +1296,9 @@ def build_args(
     if not headless:
         for arg in linux_headed_gui_args():
             seen[arg.split("=", 1)[0]] = arg
+    else:
+        for arg in linux_headless_gl_args():
+            seen[arg.split("=", 1)[0]] = arg
 
     # GPU blocklist bypass:
     # - Headed mode (all platforms): Chromium blocks WebGL on software GPUs
@@ -1302,6 +1306,8 @@ def build_args(
     # - Windows (all modes): Chromium's GPU blocklist blocks WebGPU for the
     #   Microsoft Basic Render Driver. Dawn's adapter_blocklist bypass alone
     #   isn't enough — need this flag too.
+    # Headless Linux (linux-native / linux-chrome) skips this to avoid forcing
+    # a software ANGLE path; Playwright SwiftShader is already ignored.
     # Linux windows-chrome (including headless) is applied after persona merge.
     import platform as _platform
     if not headless or _platform.system() == "Windows":

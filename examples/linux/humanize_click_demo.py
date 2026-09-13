@@ -7,7 +7,7 @@ from playwright.sync_api import Error as PlaywrightError
 from hexium_browser import launch
 from hexium_browser.artifacts import SCREENSHOTS_DIR, finalize_recording, recording_kwargs
 
-HTML = Path(__file__).resolve().parent / "assets" / "mouse_demo.html"
+HTML = Path(__file__).resolve().parent.parent / "assets" / "mouse_demo.html"
 CLICKS = 8
 RECORDING_NAME = "humanize_click_demo"
 

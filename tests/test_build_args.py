@@ -124,6 +124,21 @@ def test_headless_skips_gtk4(monkeypatch):
     assert "--ozone-platform=x11" not in args
 
 
+def test_linux_headless_does_not_request_software_gl(monkeypatch):
+    monkeypatch.setattr("hexium_browser.config.platform.system", lambda: "Linux")
+    args = build_args(stealth_args=True, extra_args=None, headless=True)
+    assert "--enable-unsafe-swiftshader" not in args
+    assert "--disable-gpu" not in args
+    assert not any(a.startswith("--use-gl=swiftshader") for a in args)
+    assert "--ignore-gpu-blocklist" not in args
+
+
+def test_linux_headed_requests_gpu_blocklist_bypass(monkeypatch):
+    monkeypatch.setattr("hexium_browser.config.platform.system", lambda: "Linux")
+    args = build_args(stealth_args=True, extra_args=None, headless=False)
+    assert "--ignore-gpu-blocklist" in args
+
+
 def test_user_gtk_arg_overrides_default(monkeypatch):
     monkeypatch.setattr("hexium_browser.config.platform.system", lambda: "Linux")
     monkeypatch.setenv("DISPLAY", ":0")

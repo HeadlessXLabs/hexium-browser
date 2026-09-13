@@ -14,7 +14,7 @@ from hexium_browser import launch
 from hexium_browser.artifacts import SCREENSHOTS_DIR, finalize_recording, recording_kwargs
 
 URL = "https://deviceandbrowserinfo.com/are_you_a_bot_interactions"
-HIGHLIGHTER = Path(__file__).resolve().parent / "assets" / "cursor_highlighter.js"
+HIGHLIGHTER = Path(__file__).resolve().parent.parent / "assets" / "cursor_highlighter.js"
 RECORDING_NAME = "dabi_interactions_mouse"
 
 

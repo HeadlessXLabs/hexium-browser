@@ -12,7 +12,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ### [wrapper]
 
-- Windows font pack for `windows-chrome` ships in the wrapper (`persona/data/fonts/windows`). `HEXIUM_FONTS_DIR` still overrides.
+- Headless Linux stays on a real GPU path instead of Playwright’s software-GL flags.
+- Windows font pack for `windows-chrome` ships in the package. `HEXIUM_FONTS_DIR` still overrides.
+
+### [binary]
+
+- Headless Chrome looks less like a bot on common public checks.
+- Linux headless no longer looks like a software GPU to typical detectors.
+
+### [docs]
+
+- Examples split into `examples/linux/` and `examples/win/` (`assets/` stays at `examples/assets/`).
+- Headless oracle walk (`examples/linux/test_headless.py`, `examples/win/test_headless.py`): [headless-detector.vercel.app](https://headless-detector.vercel.app/) then [Infosimples detect-headless](https://infosimples.github.io/detect-headless/) in one tab, with mouse wander and a `.webm` recording.
+- README and persona pages include those headless captures (`linux-native` **0.10**, `windows-chrome` **0.00**).
 
 ---
 

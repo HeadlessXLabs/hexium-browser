@@ -1,7 +1,7 @@
 """Headed Windows-on-Linux Hexium: open google.com and leave the window open.
 
 Usage:
-    python examples/win-google.py
+    python examples/win/win-google.py
 """
 
 from playwright.sync_api import Error as PlaywrightError

@@ -31,3 +31,6 @@ Hexium-*.tar.gz.sha256
 
 UPDATE.md
 UPDATE.local.md
+
+# Example/oracle dumps belong at repo-root assets/, not next to the package
+/src/assets/

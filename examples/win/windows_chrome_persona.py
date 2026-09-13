@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Prove linux-chrome persona after an overlay rebuild.
+"""Prove windows-chrome persona after an overlay rebuild.
 
-Writes <profile>/persona.json, prints live Intl / navigator / screen / WebGL,
-opens https://example.com, and checks that GPU stays the host (no Direct3D)
-while hardware/screen follow the sampled JSON.
+Linux default: samples a Chrome+Windows desktop joint, rewrites Chrome 151,
+writes GPU/fonts into persona.json, and jails FONTCONFIG_FILE to the Windows
+font pack. Pass persona="linux-chrome" for host GPU/fonts.
 
 Usage:
-    python examples/linux_chrome_persona.py
-    python examples/linux_chrome_persona.py --headed
-    python examples/linux_chrome_persona.py --proxy http://127.0.0.1:8888
-    python examples/linux_chrome_persona.py --twice
+    python examples/win/windows_chrome_persona.py
+    python examples/win/windows_chrome_persona.py --headed
+    python examples/win/windows_chrome_persona.py --proxy http://127.0.0.1:8888
+    python examples/win/windows_chrome_persona.py --twice
 """
 
 from __future__ import annotations
@@ -78,7 +78,7 @@ def _one_tab(browser):
 def _load_persona_json(profile: Path) -> dict:
     path = profile / "persona.json"
     if not path.is_file():
-        raise SystemExit(f"missing {path} — launch did not write a linux-chrome persona file")
+        raise SystemExit(f"missing {path} — launch did not write a windows-chrome persona file")
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -91,9 +91,9 @@ def _checks(file_persona: dict, live: dict) -> list[str]:
     notes: list[str] = []
     platform = str(live.get("platform") or "")
     if platform in {"Win32", "Win64"}:
-        notes.append(f"FAIL platform={platform} (expected Linux)")
-    else:
         notes.append(f"OK platform={platform}")
+    else:
+        notes.append(f"FAIL platform={platform} (expected Win32)")
 
     ua = str(live.get("userAgent") or "")
     if "Chrome/151" in ua or "Chrome/151." in ua:
@@ -102,17 +102,24 @@ def _checks(file_persona: dict, live: dict) -> list[str]:
         notes.append(f"WARN UA is not Chrome 151: {ua[:80]}")
 
     renderer = str((live.get("webgl") or {}).get("renderer") or "")
-    if any(token in renderer for token in ("Direct3D", "D3D11", "Segoe")):
-        notes.append(f"FAIL host GPU leaked a Windows renderer: {renderer}")
+    if any(token in renderer for token in ("Direct3D", "D3D11")):
+        notes.append(f"OK WebGL D3D: {renderer}")
+    elif any(token in renderer for token in ("Mesa", "OpenGL", "llvmpipe")):
+        notes.append(f"FAIL host Mesa leaked: {renderer}")
     elif renderer:
-        notes.append(f"OK WebGL is host-like: {renderer}")
+        notes.append(f"WARN WebGL is not D3D11: {renderer}")
     else:
         notes.append("WARN WebGL renderer empty")
 
-    if "webgl_vendor" in file_persona or "font_families" in file_persona:
-        notes.append("FAIL persona.json must not spoof GPU/fonts on linux-chrome")
+    if file_persona.get("use_native_surfaces") is False and file_persona.get("webgl_renderer"):
+        notes.append("OK persona.json includes GPU/fonts and use_native_surfaces=false")
     else:
-        notes.append("OK persona.json omitted GPU/fonts")
+        notes.append("FAIL persona.json must spoof GPU/fonts on windows-chrome")
+
+    if file_persona.get("system_ui_font") == "Segoe UI":
+        notes.append("OK system_ui_font=Segoe UI")
+    else:
+        notes.append(f"FAIL system_ui_font={file_persona.get('system_ui_font')!r}")
 
     cores_file = file_persona.get("hardware_concurrency")
     cores_live = live.get("hardwareConcurrency")
@@ -121,7 +128,7 @@ def _checks(file_persona: dict, live: dict) -> list[str]:
     else:
         notes.append(
             f"WARN hardwareConcurrency file={cores_file} live={cores_live} "
-            "(rebuild may not include split hardware gate)"
+            "(rebuild may not include windows-chrome preset)"
         )
 
     tz_file = file_persona.get("timezone_id")
@@ -144,10 +151,9 @@ def _run_once(
     proxy: str | None,
     geoip: bool,
     screenshot: bool,
-    wait_ms: int,
 ) -> tuple[dict, dict]:
     profile.mkdir(parents=True, exist_ok=True)
-    print(f"Launching Hexium linux-chrome  seed={fingerprint!r}  profile={profile}", flush=True)
+    print(f"Launching Hexium windows-chrome  seed={fingerprint!r}  profile={profile}", flush=True)
     browser = launch(
         headless=headless,
         humanize=True,
@@ -156,23 +162,22 @@ def _run_once(
         proxy=proxy,
         geoip=geoip,
         user_data_dir=str(profile),
+        persona="windows-chrome",
     )
     try:
         page = _one_tab(browser)
-        page.goto("https://example.com", wait_until="domcontentloaded", timeout=30_000)
-        page.wait_for_selector("h1", timeout=15_000)
+        page.goto("about:blank", wait_until="domcontentloaded")
         live = page.evaluate(_READ_SIGNALS)
         if screenshot:
             ensure_artifact_dirs()
-            shot = SCREENSHOTS_DIR / "linux_chrome_persona.png"
+            shot = SCREENSHOTS_DIR / "windows_chrome_persona.png"
             page.screenshot(path=str(shot), full_page=True)
             print(f"Screenshot: {shot}", flush=True)
-        if wait_ms > 0:
-            print(f"Waiting {wait_ms / 1000:.0f}s...", flush=True)
-            try:
-                page.wait_for_timeout(wait_ms)
-            except PlaywrightError:
-                pass
+        print("Waiting 2 minutes...", flush=True)
+        try:
+            page.wait_for_timeout(WAIT_MS)
+        except PlaywrightError:
+            pass
     finally:
         try:
             browser.close()
@@ -183,13 +188,13 @@ def _run_once(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="linux-chrome persona example")
+    parser = argparse.ArgumentParser(description="windows-chrome persona example")
     parser.add_argument("--headed", action="store_true")
     parser.add_argument("--proxy", default=None)
     parser.add_argument(
         "--fingerprint",
-        default="hexium-linux-proof-1",
-        help="Pinned seed (same seed → same screen/cores)",
+        default="hexium-windows-proof-1",
+        help="Pinned seed (same seed → same GPU/screen/cores)",
     )
     parser.add_argument(
         "--no-geoip",
@@ -199,22 +204,16 @@ def main() -> int:
     parser.add_argument(
         "--twice",
         action="store_true",
-        help="Launch twice with the same seed and compare cores/screen",
+        help="Launch twice with the same seed and compare cores/screen/GPU",
     )
     parser.add_argument("--no-screenshot", action="store_true")
-    parser.add_argument(
-        "--wait-ms",
-        type=int,
-        default=WAIT_MS,
-        help="Hold the page open after the screenshot (0 to exit immediately)",
-    )
     args = parser.parse_args()
 
     geoip = not args.no_geoip
     if args.proxy:
         geoip = True
 
-    profile = get_profiles_root() / "linux-chrome-example"
+    profile = get_profiles_root() / "windows-chrome-example"
     file_persona, live = _run_once(
         profile=profile,
         headless=not args.headed,
@@ -222,7 +221,6 @@ def main() -> int:
         proxy=args.proxy,
         geoip=geoip,
         screenshot=not args.no_screenshot,
-        wait_ms=args.wait_ms,
     )
 
     _print_block("persona.json", file_persona)
@@ -240,17 +238,17 @@ def main() -> int:
             proxy=args.proxy,
             geoip=geoip,
             screenshot=False,
-            wait_ms=args.wait_ms,
         )
         same = (
             live.get("hardwareConcurrency") == live2.get("hardwareConcurrency")
             and (live.get("screen") or {}).get("width") == (live2.get("screen") or {}).get("width")
+            and (live.get("webgl") or {}).get("renderer") == (live2.get("webgl") or {}).get("renderer")
             and file_persona.get("seed") == file2.get("seed")
         )
         print(
-            "OK same seed → same cores/screen"
+            "OK same seed → same cores/screen/GPU"
             if same
-            else "FAIL same seed produced different cores/screen",
+            else "FAIL same seed produced different cores/screen/GPU",
             flush=True,
         )
 

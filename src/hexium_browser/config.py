@@ -60,6 +60,19 @@ def linux_headed_gui_args() -> list[str]:
     return args
 
 
+def linux_headless_gl_args() -> list[str]:
+    """Headless Linux: do not force software GL (SwiftShader / llvmpipe).
+
+    Playwright's ``--enable-unsafe-swiftshader`` is dropped via
+    ``IGNORE_DEFAULT_ARGS``. Software UNMASKED_RENDERER strings are masked
+    in the engine overlay; the wrapper does not pass ``--disable-gpu`` or
+    ``--use-gl=swiftshader``.
+    """
+    if platform.system() != "Linux":
+        return []
+    return []
+
+
 def apply_linux_headed_gui_env(env: dict[str, str] | None = None) -> dict[str, str] | None:
     """GTK_CSD=0 only. Do not set GTK_THEME — Appearance must stay Classic.
 

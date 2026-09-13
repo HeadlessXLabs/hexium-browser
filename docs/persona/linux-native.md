@@ -16,3 +16,11 @@ UA is Chrome **151.0.7922.174**. Fingerprint patches that invent a different GPU
 ## Remap
 
 `linux-native` on Windows or macOS remaps to that host’s native (`windows-native` / `macos-native`). For a sampled Linux Chrome identity on Linux, use [`linux-chrome`](linux-chrome.md) (opt-in).
+
+## Headless captures
+
+13 Sep 2026, `examples/linux/test_headless.py`. Screenshots, not a guarantee.
+
+| ![Linux headless — Vercel 0.10](../../assets/screenshots/test_headless_linux_vercel.png) | ![Linux headless — Infosimples](../../assets/screenshots/test_headless_linux_infosimples.png) |
+| --- | --- |
+| [headless-detector.vercel.app](https://headless-detector.vercel.app/) — **0.10**, Normal Browser | [Infosimples](https://infosimples.github.io/detect-headless/) — Time Elapse pass |

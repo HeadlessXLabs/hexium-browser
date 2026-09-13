@@ -25,7 +25,7 @@ Sites see **Google Chrome 151**. You see Hexium Browser — a C++ persona compil
   <a href="assets/recordings/google_search_human_headless_new_profile.webm">
     <img src="assets/recordings/google_search_human_headless_new_profile.gif" alt="Headless Google search, new profile" width="800">
   </a>
-  <br><em>Headless Google search, new profile — <code>examples/google_search_human_headless_new_profile.py</code></em>
+  <br><em>Headless Google search, new profile — <code>examples/linux/google_search_human_headless_new_profile.py</code></em>
 </p>
 
 ## Features
@@ -59,10 +59,12 @@ browser = launch(
 `browser.new_page()` opens a **tab**. Bare `launch()` is a new visitor each time; use `profile="Work"` or `HEXIUM_USER_DATA_DIR` to return to the same identity.
 
 ```bash
-python examples/linux_chrome_persona.py
-python examples/windows_chrome_persona.py --headed
-python examples/stealth_test.py
-python examples/open_google.py
+python examples/linux/linux_chrome_persona.py
+python examples/win/windows_chrome_persona.py --headed
+python examples/linux/stealth_test.py
+python examples/linux/open_google.py
+python examples/linux/test_headless.py
+python examples/win/test_headless.py
 ```
 
 ## Install
@@ -171,15 +173,28 @@ Hexium does not solve CAPTCHAs. Bring your own proxy. Use the Playwright API you
 
 ## Test results
 
-Captured 12 Sep 2026 against live oracles with Chrome 151 (`examples/stealth_test.py`, `examples/recaptcha_score.py`, `examples/fingerprint_scan_test.py`). These are screenshots, not a guarantee that every site will score the same.
+Captured 12–13 Sep 2026 against live oracles with Chrome 151. These are screenshots, not a guarantee that every site will score the same.
+
+Headless walk (`examples/linux/test_headless.py`, `examples/win/test_headless.py`): [headless-detector.vercel.app](https://headless-detector.vercel.app/) then [Infosimples detect-headless](https://infosimples.github.io/detect-headless/).
 
 | Oracle | What the capture shows |
 | --- | --- |
+| Headless detector (Linux, `linux-native`) | **0.10** — Normal Browser |
+| Headless detector (Win32, `windows-chrome`) | **0.00** — Normal Browser |
+| Infosimples detect-headless (both) | WebDriver missing, Time Elapse passes. Yellow “Broken Image” is that page’s check, not Hexium. |
 | reCAPTCHA v3 demo | score **0.9** |
 | BrowserScan bot detection | **Normal** |
 | deviceandbrowserinfo.com | **You are human!** (`isBot: false`) |
 | bot.sannysoft.com | WebDriver missing, `window.chrome` present, plugins **5**, UA Chrome/151 |
 | Rebrowser bot detector | no webdriver / no `__pwInitScripts` (some checks need a click to fire) |
+
+| ![Linux headless — Vercel 0.10](assets/screenshots/test_headless_linux_vercel.png) | ![Linux headless — Infosimples](assets/screenshots/test_headless_linux_infosimples.png) |
+| --- | --- |
+| Linux `linux-native` — headless detector **0.10**, Normal Browser | Linux — Infosimples (Time Elapse pass) |
+
+| ![Win32 headless — Vercel 0.00](assets/screenshots/test_headless_win_vercel.png) | ![Win32 headless — Infosimples](assets/screenshots/test_headless_win_infosimples.png) |
+| --- | --- |
+| `windows-chrome` — headless detector **0.00**, Normal Browser | `windows-chrome` — Infosimples (Time Elapse pass) |
 
 | ![reCAPTCHA v3 demo — score 0.9](assets/screenshots/recaptcha_score.png) | ![BrowserScan — Normal](assets/screenshots/stealth_test_BrowserScan.png) |
 | --- | --- |
@@ -191,14 +206,14 @@ Captured 12 Sep 2026 against live oracles with Chrome 151 (`examples/stealth_tes
 
 | ![Rebrowser bot detector](assets/screenshots/stealth_test_Rebrowser_Bot_Detector.png) | ![bot.incolumitas.com](assets/screenshots/stealth_test_bot_incolumitas_com.png) |
 | --- | --- |
-| Rebrowser bot detector — no webdriver, no Playwright init scripts | bot.incolumitas.com — `examples/stealth_test.py` |
+| Rebrowser bot detector — no webdriver, no Playwright init scripts | bot.incolumitas.com — `examples/linux/stealth_test.py` |
 
 <details>
 <summary>CreepJS</summary>
 
 | ![CreepJS lies, noise=false](assets/screenshots/stealth_test_CreepJS_lies_%28noise=false%29.png) | ![CreepJS](assets/screenshots/creepjs.png) |
 | --- | --- |
-| CreepJS (noise=false) — `examples/stealth_test.py` | CreepJS — `examples/fingerprint_scan_test.py` |
+| CreepJS (noise=false) — `examples/linux/stealth_test.py` | CreepJS — `examples/linux/fingerprint_scan_test.py` |
 
 </details>
 
@@ -207,7 +222,7 @@ Captured 12 Sep 2026 against live oracles with Chrome 151 (`examples/stealth_tes
 
 <p align="center">
 <img src="assets/screenshots/fingerprint-scan.png" width="600" alt="fingerprint-scan.com">
-<br><em>fingerprint-scan.com — <code>examples/fingerprint_scan_test.py</code></em>
+<br><em>fingerprint-scan.com — <code>examples/linux/fingerprint_scan_test.py</code></em>
 </p>
 
 </details>
@@ -276,8 +291,8 @@ launch(persona="windows-chrome", fingerprint="account-1")  # same machine next t
 Windows-on-Linux needs the Segoe pack shipped in the wrapper (`HEXIUM_FONTS_DIR` overrides). Desktop UA-CH `model` is **empty** (stock Chrome 151). Do not cartesian OS×GPU — one OS + one joint sample.
 
 ```bash
-python examples/linux_chrome_persona.py
-python examples/windows_chrome_persona.py --headed
+python examples/linux/linux_chrome_persona.py
+python examples/win/windows_chrome_persona.py --headed
 ```
 
 ### What is random vs sticky
@@ -299,7 +314,7 @@ GeoIP does not re-roll the GPU. Explicit `timezone=` / `locale=` always win over
 
 <p align="center">
 <img src="assets/screenshots/linux_chrome_persona.png" width="600" alt="linux-chrome persona on example.com">
-<br><em>linux-chrome persona on example.com (<code>examples/linux_chrome_persona.py</code>)</em>
+<br><em>linux-chrome persona on example.com (<code>examples/linux/linux_chrome_persona.py</code>)</em>
 </p>
 
 ## Binary

@@ -22,9 +22,11 @@ CI on Ubuntu: [docs/CI.md](docs/CI.md).
 | Path | Purpose |
 | --- | --- |
 | `src/hexium_browser/` | Playwright `launch()` wrapper |
-| `examples/oracle_smoke.py` | Minimal oracle probe |
-| `examples/stealth_test.py` | Full stealth suite |
-| `examples/open_google.py` | Headed Google tab (persistent profile) |
+| `examples/linux/oracle_smoke.py` | Minimal oracle probe |
+| `examples/linux/stealth_test.py` | Full stealth suite |
+| `examples/linux/open_google.py` | Headed Google tab (persistent profile) |
+| `examples/linux/test_headless.py` | Headless Vercel + Infosimples walk (video) |
+| `examples/win/test_headless.py` | Same walk, `windows-chrome` persona |
 | `tests/` | Unit tests (mostly mocked; no binary required) |
 
 Playwright examples only. No Selenium / Puppeteer / crawl4ai / Lambda integrations.
@@ -52,9 +54,9 @@ browser.close()
 Oracle examples:
 
 ```bash
-python examples/oracle_smoke.py
-python examples/oracle_smoke.py --url https://bot.sannysoft.com
-python examples/stealth_test.py
+python examples/linux/oracle_smoke.py
+python examples/linux/oracle_smoke.py --url https://bot.sannysoft.com
+python examples/linux/stealth_test.py
 ```
 
 ## Unit tests

@@ -218,6 +218,7 @@ class TestLocalBinaryOverride:
 def test_ignore_default_args_includes_disable_extensions():
     assert "--disable-extensions" in IGNORE_DEFAULT_ARGS
     assert "--enable-automation" in IGNORE_DEFAULT_ARGS
+    assert "--enable-unsafe-swiftshader" in IGNORE_DEFAULT_ARGS
 
 
 class TestLinuxHeadedGui:

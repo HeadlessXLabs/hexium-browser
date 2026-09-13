@@ -9,7 +9,9 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-ARTIFACTS_ROOT = Path(__file__).resolve().parent.parent / "assets"
+# Repo checkout: <repo>/src/hexium_browser/artifacts.py → <repo>/assets/
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+ARTIFACTS_ROOT = Path(os.environ["HEXIUM_ARTIFACTS_DIR"]) if os.environ.get("HEXIUM_ARTIFACTS_DIR") else _REPO_ROOT / "assets"
 SCREENSHOTS_DIR = ARTIFACTS_ROOT / "screenshots"
 RECORDINGS_DIR = ARTIFACTS_ROOT / "recordings"
 
