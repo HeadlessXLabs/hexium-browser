@@ -3,6 +3,7 @@
 All tests mock playwright to avoid needing a binary.
 """
 
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -50,7 +51,7 @@ def test_persistent_context_args_built(_mock_geoip, _mock_bin):
 @patch("hexium_browser.browser.ensure_binary", return_value="/fake/chrome")
 @patch("hexium_browser.browser.maybe_resolve_geoip", return_value=(None, None, None))
 def test_persistent_context_default_viewport(_mock_geoip, _mock_bin):
-    """DEFAULT_VIEWPORT applied when no viewport given."""
+    """Chrome 151 headless uses no_viewport (real window size), not DEFAULT_VIEWPORT."""
     pw_cm, pw, context = _make_mock_pw_and_context()
 
     with patch("playwright.sync_api.sync_playwright", return_value=pw_cm):
@@ -58,7 +59,23 @@ def test_persistent_context_default_viewport(_mock_geoip, _mock_bin):
         launch_persistent_context("/tmp/profile")
 
     call_kwargs = pw.chromium.launch_persistent_context.call_args[1]
+    assert call_kwargs.get("no_viewport") is True
+    assert "viewport" not in call_kwargs
+
+
+@patch("hexium_browser.browser.ensure_binary", return_value="/fake/chrome")
+@patch("hexium_browser.browser.maybe_resolve_geoip", return_value=(None, None, None))
+def test_persistent_context_legacy_headless_default_viewport(_mock_geoip, _mock_bin):
+    """Pre-151 engines still emulate DEFAULT_VIEWPORT in headless."""
+    pw_cm, pw, context = _make_mock_pw_and_context()
+
+    with patch("playwright.sync_api.sync_playwright", return_value=pw_cm):
+        from hexium_browser.browser import launch_persistent_context
+        launch_persistent_context("/tmp/profile", browser_version="146.0.7680.177.3")
+
+    call_kwargs = pw.chromium.launch_persistent_context.call_args[1]
     assert call_kwargs["viewport"] == DEFAULT_VIEWPORT
+    assert "no_viewport" not in call_kwargs
 
 
 @patch("hexium_browser.browser.ensure_binary", return_value="/fake/chrome")
