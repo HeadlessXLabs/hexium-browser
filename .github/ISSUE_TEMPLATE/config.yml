@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Usage reference
+    url: https://github.com/HeadlessXLabs/hexium-browser/blob/main/docs/USAGE.md
+    about: launch(), personas, GeoIP, humanize, profiles
+  - name: Security
+    url: https://github.com/HeadlessXLabs/hexium-browser/security/advisories/new
+    about: Private vulnerability report (not a public issue)

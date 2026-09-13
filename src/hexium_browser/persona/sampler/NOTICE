@@ -1,0 +1,13 @@
+Hexium device-row sampler
+-------------------------
+
+Public API: hexium_browser.persona.sample_linux_chrome
+
+The ancestral sampler and the packed network zips in ../data/ are derived
+from Apache License 2.0 works (Apify fingerprint-suite datapoints and the
+Python Bayesian sampler later published as BrowserForge). Hexium does not
+ship JS injectors.
+
+You may obtain a copy of the Apache License at:
+
+    http://www.apache.org/licenses/LICENSE-2.0

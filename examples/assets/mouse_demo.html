@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hexium humanize click demo</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        overflow: hidden;
+        background: #ffffff;
+        font-family: system-ui, sans-serif;
+      }
+      .button {
+        position: absolute;
+        padding: 10px 20px;
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        border-radius: 4px;
+      }
+      #hexium-cursor-highlighter {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        background-color: rgba(59, 130, 246, 0.9);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 2147483647;
+        transform: translate(-50%, -50%);
+        box-shadow:
+          0 0 0 5px rgba(59, 130, 246, 0.5),
+          0 0 0 10px rgba(59, 130, 246, 0.3),
+          0 0 0 15px rgba(59, 130, 246, 0.12);
+      }
+      #hud {
+        position: fixed;
+        left: 12px;
+        top: 12px;
+        color: #111111;
+        font-size: 13px;
+        z-index: 2147483646;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="hud">mousemove: 0</div>
+    <div id="hexium-cursor-highlighter"></div>
+    <script>
+      window.moves = [];
+      const hud = document.getElementById("hud");
+      const cursor = document.getElementById("hexium-cursor-highlighter");
+
+      document.addEventListener("mousemove", (e) => {
+        cursor.style.left = e.clientX + "px";
+        cursor.style.top = e.clientY + "px";
+        window.moves.push([e.clientX, e.clientY]);
+        document.documentElement.setAttribute("data-moves", String(window.moves.length));
+        hud.textContent = "mousemove: " + window.moves.length;
+      }, true);
+
+      function createButton() {
+        const button = document.createElement("button");
+        button.classList.add("button");
+        button.textContent = "Click me!";
+        const maxX = Math.max(40, window.innerWidth - 120);
+        const maxY = Math.max(40, window.innerHeight - 50);
+        button.style.left = Math.floor(Math.random() * maxX) + "px";
+        button.style.top = Math.floor(Math.random() * maxY) + "px";
+        button.addEventListener("click", () => {
+          button.remove();
+          createButton();
+        });
+        document.body.appendChild(button);
+      }
+      createButton();
+    </script>
+  </body>
+</html>

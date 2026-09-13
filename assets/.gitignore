@@ -1,0 +1,4 @@
+# Playwright scratch leftovers only — README screenshots/recordings stay tracked.
+recordings/.tmp-*/
+recordings/page@*.webm
+screenshots/.tmp-*

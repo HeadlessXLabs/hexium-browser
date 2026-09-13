@@ -1,0 +1,69 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hexium-browser"
+dynamic = ["version"]
+description = "Playwright launch() wrappers for Hexium-Browser."
+readme = "README.md"
+license = "AGPL-3.0-only"
+requires-python = ">=3.9"
+authors = [
+    { name = "HeadlessXLabs" },
+]
+keywords = [
+    "stealth",
+    "browser",
+    "chromium",
+    "playwright",
+    "hexium",
+    "headlessx",
+    "scraping",
+    "web-scraping",
+    "anti-detect",
+    "fingerprint",
+    "headless",
+    "automation",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP :: Browsers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "playwright>=1.40",
+    "httpx>=0.24",
+]
+
+[project.optional-dependencies]
+geoip = ["geoip2>=4.0", "socksio>=1.0"]
+serve = ["aiohttp>=3.9", "websockets>=12.0"]
+dev = ["pytest>=7.0", "pytest-asyncio>=0.23"]
+
+[project.scripts]
+hexium-browser = "hexium_browser.__main__:main"
+
+[tool.hatch.version]
+path = "src/hexium_browser/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hexium_browser"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/src/hexium_browser"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "slow: marks tests that hit live detection sites (deselect with '-m \"not slow\"')",
+]
