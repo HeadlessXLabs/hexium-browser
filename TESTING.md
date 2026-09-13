@@ -68,7 +68,7 @@ python examples/oracle_smoke.py --url https://bot.sannysoft.com
 python examples/stealth_test.py
 ```
 
-Or download from headlessx.dev (when tarballs exist):
+Or `hexium-browser fetch` (headlessx.dev, then GitHub Releases):
 
 ```bash
 hexium-browser fetch
