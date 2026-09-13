@@ -19,7 +19,7 @@ UA is Chrome **151.0.7922.174**. Fingerprint patches that invent a different GPU
 
 ## Headless captures
 
-13 Sep 2026, `examples/linux/test_headless.py`. Screenshots, not a guarantee.
+13 Sep 2026, `examples/linux-native/test_headless.py`. Screenshots, not a guarantee.
 
 | ![Linux headless — Vercel 0.10](../../assets/screenshots/test_headless_linux_vercel.png) | ![Linux headless — Infosimples](../../assets/screenshots/test_headless_linux_infosimples.png) |
 | --- | --- |

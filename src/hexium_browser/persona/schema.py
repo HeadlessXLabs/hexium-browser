@@ -11,6 +11,8 @@ CHROME_UA_VERSION = "151.0.7922.174"
 # Sample majors at or above this floor, then rewrite to CHROME_UA_VERSION.
 MIN_SAMPLED_CHROME_MAJOR = 140
 MAX_HARDWARE_CONCURRENCY = 32
+MIN_DESKTOP_HARDWARE_CONCURRENCY = 4
+MIN_DESKTOP_DEVICE_MEMORY_GB = 4.0
 
 # FNV-1a 64-bit — same constants as HashSeedString in hexium_persona.cc.
 _FNV_OFFSET = 0xCBF29CE484222325

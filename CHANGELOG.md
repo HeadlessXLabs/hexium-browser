@@ -10,21 +10,39 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
-### [wrapper]
+---
 
-- Headless Linux stays on a real GPU path instead of Playwright’s software-GL flags.
-- Windows font pack for `windows-chrome` ships in the package. `HEXIUM_FONTS_DIR` still overrides.
+## [2026-09-14] — git main (no PyPI bump)
+
+Wrapper and docs on **main** with Python still **0.1.1**. Engine-only GitHub asset replace for **Hexium-151.0.7922.174.1** (same version). Not a DataDome or Google-captcha claim.
 
 ### [binary]
 
-- Headless Chrome looks less like a bot on common public checks.
-- Linux headless no longer looks like a software GPU to typical detectors.
+- Same-version Linux engine refresh: quieter headless checks; Linux GPU no longer looks like fake software.
+- Credentialed HTTP proxies work in the published binary (inline `http://USER:PASS@host:port` or Playwright auth).
+- WebRTC candidate addresses follow the GeoIP / `HEXIUM_WEBRTC_MASK_IP` exit IP in this binary. `linux-native` masks only when that IP is set.
+- Frames and workers keep the same Chrome 151 identity. SOCKS5 UDP ASSOCIATE is later; a rotating pool can still show two proxy exits.
+
+### [wrapper]
+
+- Headless Linux stays on a real GPU path instead of Playwright’s software-GL flags.
+- GeoIP lookup waits 30s (was 5s) before giving up; `HEXIUM_GEOIP_TIMEOUT_SECONDS` still overrides.
+- `show_cursor` defaults to **False** (opt-in debug ring only).
+- Credentialed HTTP proxies use Playwright auth by default. `HEXIUM_HTTP_PROXY_INLINE_AUTH=1` puts creds on `--proxy-server`. SOCKS5 still uses Playwright auth unless `HEXIUM_SOCKS_PROXY_INLINE_AUTH=1`. SOCKS5 UDP ASSOCIATE is **not** this release.
+- Proxy launches disable HTTP/2 and QUIC and force non-proxied UDP off. GeoIP also sets `HEXIUM_WEBRTC_MASK_IP` so child processes see the exit IP.
+- Optional `--hexium-allow-3p-cookies`, default **off**. `launch(allow_3p_cookies=True)` or `HEXIUM_ALLOW_3P_COOKIES=1`.
+- Shop examples: `HEXIUM_PROXY` as `http://USER:PASS@host:port` or `host:port:USER:PASS`; `ephemeral=True` (no sticky `profile=`).
+- Sampled `linux-chrome` / `windows-chrome` rows reject leftover Brave/Edge UA-CH, mixed-OS UA, phone GPU/RAM, and Windows marker fonts on Linux. Chrome/Chromium UA-CH majors must match `151.0.7922.174`.
+- Windows font pack for `windows-chrome` ships in the package. `HEXIUM_FONTS_DIR` still overrides.
 
 ### [docs]
 
-- Examples split into `examples/linux/` and `examples/win/` (`assets/` stays at `examples/assets/`).
-- Headless oracle walk (`examples/linux/test_headless.py`, `examples/win/test_headless.py`): [headless-detector.vercel.app](https://headless-detector.vercel.app/) then [Infosimples detect-headless](https://infosimples.github.io/detect-headless/) in one tab, with mouse wander and a `.webm` recording.
+- Examples by persona: `examples/linux-native/`, `examples/windows-chrome/`, `examples/linux-chrome/`. Screenshots/recordings stay under repo `assets/`.
+- Headed Allegro screenshot (`assets/screenshots/allegro_headed_linux.png`) and `allegro_pl_headed_http_proxy_ephemeral_random_profile.py` (`linux-native`). Headless Allegro example removed (site treated it as headless).
+- Headless oracle walk (`examples/linux-native/test_headless.py`, `examples/windows-chrome/test_headless.py`): [headless-detector.vercel.app](https://headless-detector.vercel.app/) then [Infosimples detect-headless](https://infosimples.github.io/detect-headless/).
 - README and persona pages include those headless captures (`linux-native` **0.10**, `windows-chrome` **0.00**).
+- Usage: shops default to headed `linux-native` + ephemeral + HTTP proxy placeholders. Fetch the matching Hexium `chrome` (`HEXIUM_BINARY_PATH` / `hexium-browser fetch`). Inline HTTP auth and WebRTC masking are in the published 151 binary. Proxy examples stay placeholders only.
+- `linux-chrome` is **not** windows-chrome sampling: Linux Chrome 151 UA + sampled screen/CPU/RAM; **GPU/WebGL and fonts stay host**.
 
 ---
 
@@ -58,7 +76,7 @@ PyPI [`hexium-browser` 0.1.1](https://pypi.org/project/hexium-browser/0.1.1/) an
   - **`linux-native`** — Linux default. Host GPU, fonts, screen, CPU.
   - **`windows-native`** — Windows default. Host pass-through (not a sampled D3D GPU).
   - **`macos-native`** — macOS default (alias `mac-native`). Host pass-through. No `macos-chrome`.
-  - **`linux-chrome`** — Linux Chrome 151 UA; host GPU/fonts; sampled screen/CPU/RAM.
+  - **`linux-chrome`** — Linux x86_64 + Chrome 151; sampled screen/CPU/RAM; host GPU/WebGL and fonts (no Mesa/font jail).
   - **`windows-chrome`** — Win32 + sampled D3D11 WebGL + Segoe pack (alias `windows-1080p`). Opt-in on Linux.
 - A `*-native` name that does not match the host OS remaps to that host’s native preset.
 - `--hexium-fingerprint=off` — fingerprint surface pass-through (P0 automation stealth stays on).
@@ -85,5 +103,6 @@ PyPI [`hexium-browser` 0.1.1](https://pypi.org/project/hexium-browser/0.1.1/) an
 - Oracle captures (12 Sep 2026): reCAPTCHA v3 demo **0.9**, BrowserScan bot **Normal**, DABI human, sannysoft WebDriver missing.
 
 [Unreleased]: https://github.com/HeadlessXLabs/hexium-browser/compare/v0.1.1...HEAD
+[2026-09-14]: https://github.com/HeadlessXLabs/hexium-browser/compare/v0.1.1...HEAD
 [0.1.1]: https://github.com/HeadlessXLabs/hexium-browser/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/HeadlessXLabs/hexium-browser/releases/tag/v0.1.0

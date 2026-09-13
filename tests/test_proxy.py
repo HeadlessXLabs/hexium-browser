@@ -9,6 +9,18 @@ from hexium_browser.browser import (
     maybe_resolve_geoip,
 )
 
+PROXY_NET = [
+    "--hexium-proxy=1",
+    "--disable-http2",
+    "--disable-quic",
+    "--force-webrtc-ip-handling-policy=disable_non_proxied_udp",
+]
+
+
+def _assert_proxy_network_args(args: list[str]) -> None:
+    for flag in PROXY_NET:
+        assert flag in args
+
 
 class TestParseProxyUrl:
     def test_no_credentials(self):
@@ -53,20 +65,29 @@ class TestBuildProxyKwargs:
     def test_simple_proxy(self):
         kwargs, args = _resolve_proxy_config("http://proxy:8080")
         assert kwargs == {"proxy": {"server": "http://proxy:8080"}}
-        assert args == []
+        _assert_proxy_network_args(args)
 
-    @patch("hexium_browser.config.get_chromium_version", return_value="146.0.7680.177.5")
     @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
     def test_proxy_with_auth(self, *_):
         kwargs, args = _resolve_proxy_config("http://user:pass@proxy:8080")
+        _assert_proxy_network_args(args)
+        assert kwargs == {
+            "proxy": {"server": "http://proxy:8080", "username": "user", "password": "pass"}
+        }
+
+    @patch("hexium_browser.config._http_proxy_inline_auth_enabled", return_value=True)
+    @patch("hexium_browser.config.get_chromium_version", return_value="151.0.7922.174.1")
+    @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
+    def test_proxy_with_auth_inline_when_opt_in(self, *_):
+        kwargs, args = _resolve_proxy_config("http://user:pass@proxy:8080")
         assert kwargs == {}
-        assert args == ["--proxy-server=http://user:pass@proxy:8080"]
+        assert args == ["--proxy-server=http://user:pass@proxy:8080", *PROXY_NET]
 
     def test_proxy_dict_passthrough(self):
         proxy_dict = {"server": "http://proxy:8080", "bypass": ".google.com,localhost"}
         kwargs, args = _resolve_proxy_config(proxy_dict)
         assert kwargs == {"proxy": proxy_dict}
-        assert args == []
+        _assert_proxy_network_args(args)
 
     @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
     def test_pinned_old_version_disables_inline_auth(self, _mock):
@@ -77,20 +98,19 @@ class TestBuildProxyKwargs:
         kwargs, args = _resolve_proxy_config(
             "http://user:pass@proxy:8080", browser_version="146.0.7680.177.3"
         )
-        assert args == []
+        _assert_proxy_network_args(args)
         assert kwargs == {"proxy": {"server": "http://proxy:8080", "username": "user", "password": "pass"}}
 
-    @patch("hexium_browser.config.get_chromium_version", return_value="151.0.7922.174.1")
     @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
-    def test_pinned_new_version_keeps_inline_auth(self, *_):
-        # Pinning a version at/above the 151 floor keeps inline credentials.
+    def test_pinned_new_version_keeps_playwright_fallback_until_patch(self, *_):
         kwargs, args = _resolve_proxy_config(
             "http://user:pass@proxy:8080", browser_version="151.0.7922.174.1"
         )
-        assert kwargs == {}
-        assert args == ["--proxy-server=http://user:pass@proxy:8080"]
+        _assert_proxy_network_args(args)
+        assert kwargs == {
+            "proxy": {"server": "http://proxy:8080", "username": "user", "password": "pass"}
+        }
 
-    @patch("hexium_browser.config.get_chromium_version", return_value="146.0.7680.177.5")
     @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
     def test_proxy_dict_with_auth(self, *_):
         proxy_dict = {
@@ -100,11 +120,8 @@ class TestBuildProxyKwargs:
             "bypass": ".example.com",
         }
         kwargs, args = _resolve_proxy_config(proxy_dict)
-        assert kwargs == {}
-        assert args == [
-            "--proxy-server=http://user:pass@proxy:8080",
-            "--proxy-bypass-list=.example.com",
-        ]
+        assert kwargs == {"proxy": proxy_dict}
+        _assert_proxy_network_args(args)
 
 
 class TestMaybeResolveGeoip:
@@ -221,12 +238,13 @@ class TestBareProxyFormat:
         r = _parse_proxy_url("proxy:8080")
         assert r == {"server": "proxy:8080"}
 
-    @patch("hexium_browser.config.get_chromium_version", return_value="146.0.7680.177.5")
     @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
     def test_resolve_proxy_config_bare(self, *_):
         kwargs, args = _resolve_proxy_config("user:pass@proxy:8080")
-        assert kwargs == {}
-        assert args == ["--proxy-server=http://user:pass@proxy:8080"]
+        _assert_proxy_network_args(args)
+        assert kwargs == {
+            "proxy": {"server": "http://proxy:8080", "username": "user", "password": "pass"}
+        }
 
 
 class TestIsSocksProxy:
@@ -258,52 +276,64 @@ class TestResolveProxyConfig:
         assert kwargs == {}
         assert args == []
 
-    @patch("hexium_browser.config.get_chromium_version", return_value="146.0.7680.177.5")
     @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
-    def test_http_string_with_creds_returns_chrome_arg(self, *_):
+    def test_http_string_with_creds_returns_playwright_dict(self, *_):
         kwargs, args = _resolve_proxy_config("http://user:pass@proxy:8080")
-        assert kwargs == {}
-        assert args == ["--proxy-server=http://user:pass@proxy:8080"]
+        assert kwargs == {
+            "proxy": {"server": "http://proxy:8080", "username": "user", "password": "pass"}
+        }
+        _assert_proxy_network_args(args)
 
     def test_http_string_no_creds_returns_playwright_dict(self):
         kwargs, args = _resolve_proxy_config("http://proxy:8080")
         assert "proxy" in kwargs
         assert kwargs["proxy"]["server"] == "http://proxy:8080"
-        assert args == []
+        _assert_proxy_network_args(args)
 
     def test_http_dict_passthrough(self):
         proxy = {"server": "http://proxy:8080", "bypass": ".example.com"}
         kwargs, args = _resolve_proxy_config(proxy)
         assert kwargs == {"proxy": proxy}
-        assert args == []
+        _assert_proxy_network_args(args)
 
-    def test_socks5_string_returns_chrome_arg(self):
+    def test_socks5_string_with_creds_uses_playwright_dict(self):
         kwargs, args = _resolve_proxy_config("socks5://user:pass@host:1080")
-        assert kwargs == {}
-        assert args == ["--proxy-server=socks5://user:pass@host:1080"]
+        assert kwargs == {
+            "proxy": {
+                "server": "socks5://host:1080",
+                "username": "user",
+                "password": "pass",
+            }
+        }
+        _assert_proxy_network_args(args)
 
     def test_socks5_no_auth_returns_chrome_arg(self):
         kwargs, args = _resolve_proxy_config("socks5://host:1080")
         assert kwargs == {}
-        assert args == ["--proxy-server=socks5://host:1080"]
+        assert args == ["--proxy-server=socks5://host:1080", *PROXY_NET]
 
-    def test_socks5h_returns_chrome_arg(self):
+    def test_socks5h_with_creds_uses_playwright_dict(self):
         kwargs, args = _resolve_proxy_config("socks5h://user:pass@host:1080")
-        assert kwargs == {}
-        assert args == ["--proxy-server=socks5h://user:pass@host:1080"]
+        assert kwargs == {
+            "proxy": {
+                "server": "socks5h://host:1080",
+                "username": "user",
+                "password": "pass",
+            }
+        }
+        _assert_proxy_network_args(args)
 
-    def test_socks5_dict_reconstructs_url(self):
+    def test_socks5_dict_with_creds_uses_playwright_dict(self):
         proxy = {"server": "socks5://host:1080", "username": "user", "password": "p@ss"}
         kwargs, args = _resolve_proxy_config(proxy)
-        assert kwargs == {}
-        assert len(args) == 1
-        assert args[0].startswith("--proxy-server=socks5://user:p%40ss@host:1080")
+        assert kwargs == {"proxy": proxy}
+        _assert_proxy_network_args(args)
 
-    def test_socks5_dict_ipv6_preserves_brackets(self):
+    def test_socks5_dict_ipv6_with_creds_uses_playwright_dict(self):
         proxy = {"server": "socks5://[::1]:1080", "username": "user", "password": "pass"}
         kwargs, args = _resolve_proxy_config(proxy)
-        assert kwargs == {}
-        assert "[::1]" in args[0]
+        assert kwargs == {"proxy": proxy}
+        _assert_proxy_network_args(args)
 
     def test_socks5_dict_with_bypass(self):
         proxy = {"server": "socks5://host:1080", "bypass": ".example.com"}
@@ -311,135 +341,152 @@ class TestResolveProxyConfig:
         assert kwargs == {}
         assert "--proxy-server=socks5://host:1080" in args
         assert "--proxy-bypass-list=.example.com" in args
+        _assert_proxy_network_args(args)
 
-    def test_socks5_string_encodes_equals_in_password(self):
-        # Chromium's --proxy-server parser truncates passwords at '=' (#157).
-        # Wrapper must auto URL-encode before passing to Chrome.
+    def test_socks5_string_with_creds_decodes_special_password(self):
+        kwargs, _ = _resolve_proxy_config("socks5://user:pass=123@host:1080")
+        assert kwargs["proxy"]["password"] == "pass=123"
+
+    def test_socks5_string_with_creds_decodes_at_in_password(self):
+        kwargs, _ = _resolve_proxy_config("socks5://user:p@ss@host:1080")
+        assert kwargs["proxy"]["password"] == "p@ss"
+
+    def test_socks5_string_with_creds_decodes_percent_encoded_password(self):
+        kwargs, _ = _resolve_proxy_config("socks5://user:pass%3D123@host:1080")
+        assert kwargs["proxy"]["password"] == "pass=123"
+
+    def test_socks5_string_no_creds_unchanged(self):
+        _, args = _resolve_proxy_config("socks5://host:1080")
+        assert args == ["--proxy-server=socks5://host:1080", *PROXY_NET]
+
+    def test_socks5_string_with_creds_empty_password(self):
+        kwargs, args = _resolve_proxy_config("socks5://user:@host:1080")
+        assert kwargs == {
+            "proxy": {
+                "server": "socks5://host:1080",
+                "username": "user",
+                "password": "",
+            }
+        }
+        _assert_proxy_network_args(args)
+
+    def test_socks5_string_with_creds_literal_percent_in_password(self):
+        kwargs, _ = _resolve_proxy_config("socks5://user:100%sure@host:1080")
+        assert kwargs["proxy"]["password"] == "100%sure"
+
+    def test_socks5_string_with_creds_malformed_port(self, caplog):
+        import logging
+        with caplog.at_level(logging.WARNING, logger="hexium_browser"):
+            kwargs, args = _resolve_proxy_config("socks5://user:pass@host:abc")
+        assert "proxy" in kwargs
+        assert kwargs["proxy"]["username"] == "user"
+        _assert_proxy_network_args(args)
+        assert any("Malformed SOCKS5" in r.message for r in caplog.records)
+
+    def test_socks5_string_with_creds_malformed_ipv6(self):
+        kwargs, args = _resolve_proxy_config("socks5://user:pass@[::1")
+        assert "proxy" in kwargs
+        _assert_proxy_network_args(args)
+
+    def test_socks5_string_with_creds_preserves_path_and_query(self):
+        kwargs, _ = _resolve_proxy_config("socks5://user:pass@host:1080/p?x=1#f")
+        assert kwargs["proxy"]["server"] == "socks5://host:1080/p?x=1#f"
+
+    def test_socks5_string_with_creds_ipv6_special_password(self):
+        kwargs, _ = _resolve_proxy_config("socks5://user:pass=eq@[::1]:1080")
+        assert kwargs["proxy"]["password"] == "pass=eq"
+        assert "[::1]" in kwargs["proxy"]["server"]
+
+    def test_socks5_string_with_creds_port_zero(self):
+        kwargs, _ = _resolve_proxy_config("socks5://user:pass=1@host:0")
+        assert kwargs["proxy"]["server"] == "socks5://host:0"
+        assert kwargs["proxy"]["password"] == "pass=1"
+
+    # --- SOCKS5 with credentials → inline --proxy-server when opt-in ---
+
+    @patch("hexium_browser.config._socks_proxy_inline_auth_enabled", return_value=True)
+    @patch("hexium_browser.config.get_chromium_version", return_value="151.0.7922.174.1")
+    @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
+    def test_socks5_string_inline_when_opt_in(self, *_):
+        kwargs, args = _resolve_proxy_config("socks5://user:pass@host:1080")
+        assert kwargs == {}
+        assert args == ["--proxy-server=socks5://user:pass@host:1080", *PROXY_NET]
+
+    @patch("hexium_browser.config._socks_proxy_inline_auth_enabled", return_value=True)
+    @patch("hexium_browser.config.get_chromium_version", return_value="151.0.7922.174.1")
+    @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
+    def test_socks5_dict_inline_when_opt_in(self, *_):
+        proxy = {"server": "socks5://host:1080", "username": "user", "password": "p@ss"}
+        kwargs, args = _resolve_proxy_config(proxy)
+        assert kwargs == {}
+        assert args[0].startswith("--proxy-server=socks5://user:p%40ss@host:1080")
+
+    @patch("hexium_browser.config._socks_proxy_inline_auth_enabled", return_value=True)
+    @patch("hexium_browser.config.get_chromium_version", return_value="151.0.7922.174.1")
+    @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
+    def test_socks5_string_encodes_equals_inline_when_opt_in(self, *_):
         _, args = _resolve_proxy_config("socks5://user:pass=123@host:1080")
-        assert args == ["--proxy-server=socks5://user:pass%3D123@host:1080"]
+        assert args == ["--proxy-server=socks5://user:pass%3D123@host:1080", *PROXY_NET]
 
-    def test_socks5_string_encodes_at_in_password(self):
-        _, args = _resolve_proxy_config("socks5://user:p@ss@host:1080")
-        # Note: parsing "user:p@ss@host" — urlparse takes everything up to LAST @
-        # as userinfo, so password = "p@ss".
-        assert args == ["--proxy-server=socks5://user:p%40ss@host:1080"]
-
-    def test_socks5_string_encoding_idempotent(self):
-        # Already-encoded input should remain encoded (not double-encoded).
-        _, args = _resolve_proxy_config("socks5://user:pass%3D123@host:1080")
-        assert args == ["--proxy-server=socks5://user:pass%3D123@host:1080"]
-
-    def test_socks5_string_logs_info_when_reencoding(self, caplog):
-        # When wrapper actually rewrites the URL (e.g. unencoded '=' in pwd),
-        # surface an INFO log so users debugging SOCKS5 connectivity (#157)
-        # can see what the wrapper did instead of being silently surprised.
+    @patch("hexium_browser.config._socks_proxy_inline_auth_enabled", return_value=True)
+    @patch("hexium_browser.config.get_chromium_version", return_value="151.0.7922.174.1")
+    @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
+    def test_socks5_string_logs_info_when_reencoding_inline(
+        self, _tag, _ver, _enabled, caplog,
+    ):
         import logging
         with caplog.at_level(logging.INFO, logger="hexium_browser"):
             _resolve_proxy_config("socks5://user:pass=123@host:1080")
         assert any("Auto URL-encoded SOCKS5" in r.message for r in caplog.records)
-        # Credentials must not leak into the log.
-        for r in caplog.records:
-            assert "pass=123" not in r.message
-            assert "pass%3D123" not in r.message
 
-    def test_socks5_string_silent_when_already_encoded(self, caplog):
-        # Idempotent path: pre-encoded URL produces no log noise.
-        import logging
-        with caplog.at_level(logging.INFO, logger="hexium_browser"):
-            _resolve_proxy_config("socks5://user:pass%3D123@host:1080")
-        assert not any("Auto URL-encoded SOCKS5" in r.message for r in caplog.records)
-
-    def test_socks5_string_silent_when_no_credentials(self, caplog):
-        # No userinfo at all → no encoding work → no log.
-        import logging
-        with caplog.at_level(logging.INFO, logger="hexium_browser"):
-            _resolve_proxy_config("socks5://host:1080")
-        assert not any("Auto URL-encoded SOCKS5" in r.message for r in caplog.records)
-
-    def test_socks5_string_silent_when_only_cosmetic_change(self, caplog):
-        # urlparse lowercases scheme and hostname, but credentials are
-        # untouched. The log must NOT fire for these cosmetic-only rewrites
-        # (regression for Copilot's review on PR #209).
-        import logging
-        with caplog.at_level(logging.INFO, logger="hexium_browser"):
-            _resolve_proxy_config("socks5://USER:pass@HOST.com:1080")
-        assert not any("Auto URL-encoded SOCKS5" in r.message for r in caplog.records)
-
-    def test_socks5_string_no_creds_unchanged(self):
-        _, args = _resolve_proxy_config("socks5://host:1080")
-        assert args == ["--proxy-server=socks5://host:1080"]
-
-    def test_socks5_string_password_only_still_encoded(self):
-        # Empty username with password: fix must still re-encode the password
-        # (regression test for empty-username bypass).
-        _, args = _resolve_proxy_config("socks5://:pass=123@host:1080")
-        assert args == ["--proxy-server=socks5://:pass%3D123@host:1080"]
-
-    def test_socks5_string_empty_password_preserves_colon(self):
-        # `user:@host` (empty password) must NOT collapse to `user@host` —
-        # semantics differ between the two forms.
-        _, args = _resolve_proxy_config("socks5://user:@host:1080")
-        assert args == ["--proxy-server=socks5://user:@host:1080"]
-
-    def test_socks5_string_literal_percent_in_password(self):
-        # Literal '%' not followed by 2 hex digits must be encoded as '%25'
-        # so Chrome decodes it back to '%'. Must not crash.
-        _, args = _resolve_proxy_config("socks5://user:100%sure@host:1080")
-        assert args == ["--proxy-server=socks5://user:100%25sure@host:1080"]
-
-    def test_socks5_string_malformed_port_passes_through(self, caplog):
-        # Invalid port (non-numeric) raises in urlparse.port. Wrapper should
-        # log a warning and pass original through to Chromium.
+    @patch("hexium_browser.config._socks_proxy_inline_auth_enabled", return_value=True)
+    @patch("hexium_browser.config.get_chromium_version", return_value="151.0.7922.174.1")
+    @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
+    def test_socks5_string_malformed_port_inline(self, _tag, _ver, _enabled, caplog):
         import logging
         with caplog.at_level(logging.WARNING, logger="hexium_browser"):
             _, args = _resolve_proxy_config("socks5://user:pass@host:abc")
-        assert args == ["--proxy-server=socks5://user:pass@host:abc"]
+        assert args == ["--proxy-server=socks5://user:pass@host:abc", *PROXY_NET]
         assert any("Malformed SOCKS5" in r.message for r in caplog.records)
 
-    def test_socks5_string_malformed_ipv6_passes_through(self, caplog):
-        # Broken IPv6 bracket — must not crash, and must reach Chromium
-        # verbatim so its own error surfaces instead of a silent rewrite.
-        import logging
-        with caplog.at_level(logging.WARNING, logger="hexium_browser"):
-            _, args = _resolve_proxy_config("socks5://user:pass@[::1")
-        assert args == ["--proxy-server=socks5://user:pass@[::1"]
+    # --- HTTP with credentials → Playwright proxy dict (default until HX patch) ---
 
-    def test_socks5_string_preserves_path_and_query(self):
-        # Nonstandard for SOCKS5, but don't silently drop user-supplied suffixes.
-        # Matches JS behavior.
-        _, args = _resolve_proxy_config("socks5://user:pass@host:1080/p?x=1#f")
-        assert args[0] == "--proxy-server=socks5://user:pass@host:1080/p?x=1#f"
-
-    def test_socks5_string_ipv6_with_special_char_password(self):
-        # IPv6 host + special char in password — both must be handled.
-        _, args = _resolve_proxy_config("socks5://user:pass=eq@[::1]:1080")
-        assert args[0] == "--proxy-server=socks5://user:pass%3Deq@[::1]:1080"
-
-    def test_socks5_string_port_zero_preserved(self):
-        # Port 0 is an unusual but valid URL component; don't silently strip it.
-        _, args = _resolve_proxy_config("socks5://user:pass=1@host:0")
-        assert args[0] == "--proxy-server=socks5://user:pass%3D1@host:0"
-
-    # --- HTTP with credentials → --proxy-server (supported platforms + version) ---
-
-    @patch("hexium_browser.config.get_chromium_version", return_value="146.0.7680.177.5")
     @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
-    def test_http_string_with_creds_on_supported_platform(self, *_):
+    def test_http_string_with_creds_uses_playwright_dict(self, *_):
+        kwargs, args = _resolve_proxy_config("http://user:pass@proxy:8080")
+        assert kwargs == {
+            "proxy": {"server": "http://proxy:8080", "username": "user", "password": "pass"}
+        }
+        _assert_proxy_network_args(args)
+
+    @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
+    def test_http_dict_with_creds_uses_playwright_dict(self, *_):
+        proxy = {"server": "http://proxy:8080", "username": "user", "password": "pass"}
+        kwargs, args = _resolve_proxy_config(proxy)
+        assert kwargs == {"proxy": proxy}
+        _assert_proxy_network_args(args)
+
+    @patch("hexium_browser.config._http_proxy_inline_auth_enabled", return_value=True)
+    @patch("hexium_browser.config.get_chromium_version", return_value="151.0.7922.174.1")
+    @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
+    def test_http_string_with_creds_inline_when_opt_in(self, *_):
         kwargs, args = _resolve_proxy_config("http://user:pass@proxy:8080")
         assert kwargs == {}
-        assert args == ["--proxy-server=http://user:pass@proxy:8080"]
+        assert args == ["--proxy-server=http://user:pass@proxy:8080", *PROXY_NET]
 
-    @patch("hexium_browser.config.get_chromium_version", return_value="146.0.7680.177.5")
+    @patch("hexium_browser.config._http_proxy_inline_auth_enabled", return_value=True)
+    @patch("hexium_browser.config.get_chromium_version", return_value="151.0.7922.174.1")
     @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
-    def test_http_dict_with_creds_on_supported_platform(self, *_):
+    def test_http_dict_with_creds_inline_when_opt_in(self, *_):
         proxy = {"server": "http://proxy:8080", "username": "user", "password": "pass"}
         kwargs, args = _resolve_proxy_config(proxy)
         assert kwargs == {}
-        assert args == ["--proxy-server=http://user:pass@proxy:8080"]
+        assert args == ["--proxy-server=http://user:pass@proxy:8080", *PROXY_NET]
 
-    @patch("hexium_browser.config.get_chromium_version", return_value="146.0.7680.177.5")
+    @patch("hexium_browser.config._http_proxy_inline_auth_enabled", return_value=True)
+    @patch("hexium_browser.config.get_chromium_version", return_value="151.0.7922.174.1")
     @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
-    def test_http_dict_with_creds_and_bypass(self, *_):
+    def test_http_dict_with_creds_and_bypass_inline_when_opt_in(self, *_):
         proxy = {
             "server": "http://proxy:8080",
             "username": "user",
@@ -450,30 +497,14 @@ class TestResolveProxyConfig:
         assert kwargs == {}
         assert "--proxy-server=http://user:pass@proxy:8080" in args
         assert "--proxy-bypass-list=.google.com" in args
+        _assert_proxy_network_args(args)
 
-    @patch("hexium_browser.config.get_chromium_version", return_value="146.0.7680.177.5")
+    @patch("hexium_browser.config._http_proxy_inline_auth_enabled", return_value=True)
+    @patch("hexium_browser.config.get_chromium_version", return_value="151.0.7922.174.1")
     @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
-    def test_http_string_encodes_special_chars_in_password(self, *_):
+    def test_http_string_encodes_special_chars_inline_when_opt_in(self, *_):
         _, args = _resolve_proxy_config("http://user:pass=123@proxy:8080")
-        assert args == ["--proxy-server=http://user:pass%3D123@proxy:8080"]
-
-    @patch("hexium_browser.config.get_chromium_version", return_value="146.0.7680.177.5")
-    @patch("hexium_browser.config.get_platform_tag", return_value="linux-x64")
-    def test_http_string_encoding_idempotent(self, *_):
-        _, args = _resolve_proxy_config("http://user:pass%3D123@proxy:8080")
-        assert args == ["--proxy-server=http://user:pass%3D123@proxy:8080"]
-
-    @patch("hexium_browser.config.get_chromium_version", return_value="146.0.7680.177.5")
-    @patch("hexium_browser.config.get_platform_tag", return_value="windows-x64")
-    def test_http_string_with_creds_on_windows(self, *_):
-        kwargs, args = _resolve_proxy_config("http://user:pass@proxy:8080")
-        assert kwargs == {}
-        assert args == ["--proxy-server=http://user:pass@proxy:8080"]
-
-    # --- HTTP with credentials on binaries without inline proxy auth → fallback ---
-    # Free macOS (145.x) and linux-arm64 (146.0.7680.177.3) predate the inline
-    # proxy-auth patch, so their credentialed HTTP proxies route through
-    # Playwright's proxy dict instead of --proxy-server.
+        assert args == ["--proxy-server=http://user:pass%3D123@proxy:8080", *PROXY_NET]
 
     @patch("hexium_browser.config.get_platform_tag", return_value="darwin-arm64")
     def test_http_string_with_creds_on_macos_falls_back(self, _mock):
@@ -482,14 +513,14 @@ class TestResolveProxyConfig:
         )
         assert "proxy" in kwargs
         assert kwargs["proxy"]["username"] == "user"
-        assert args == []
+        _assert_proxy_network_args(args)
 
     @patch("hexium_browser.config.get_platform_tag", return_value="darwin-arm64")
     def test_http_dict_with_creds_on_macos_falls_back(self, _mock):
         proxy = {"server": "http://proxy:8080", "username": "user", "password": "pass"}
         kwargs, args = _resolve_proxy_config(proxy, browser_version="146.0.7680.177.3")
         assert kwargs == {"proxy": proxy}
-        assert args == []
+        _assert_proxy_network_args(args)
 
     @patch("hexium_browser.config.get_platform_tag", return_value="linux-arm64")
     def test_http_string_with_creds_on_linux_arm_falls_back(self, _mock):
@@ -497,25 +528,47 @@ class TestResolveProxyConfig:
             "http://user:pass@proxy:8080", browser_version="146.0.7680.177.3"
         )
         assert "proxy" in kwargs
-        assert args == []
+        _assert_proxy_network_args(args)
 
+    @patch("hexium_browser.config._http_proxy_inline_auth_enabled", return_value=True)
     @patch("hexium_browser.config.get_platform_tag", return_value="darwin-arm64")
-    def test_http_with_creds_on_macos_inline_when_pinned_new(self, _mock):
+    def test_http_with_creds_inline_when_opt_in(self, _tag, _enabled):
         kwargs, args = _resolve_proxy_config(
             "http://user:pass@proxy:8080", browser_version="151.0.7922.174.1"
         )
         assert kwargs == {}
-        assert args == ["--proxy-server=http://user:pass@proxy:8080"]
+        assert args == ["--proxy-server=http://user:pass@proxy:8080", *PROXY_NET]
 
     # --- HTTP without credentials (all platforms) ---
 
     def test_http_no_creds_returns_playwright_dict(self):
         kwargs, args = _resolve_proxy_config("http://proxy:8080")
         assert "proxy" in kwargs
-        assert args == []
+        _assert_proxy_network_args(args)
 
     def test_http_dict_no_creds_returns_playwright_dict(self):
         proxy = {"server": "http://proxy:8080", "bypass": ".example.com"}
         kwargs, args = _resolve_proxy_config(proxy)
         assert kwargs == {"proxy": proxy}
-        assert args == []
+        _assert_proxy_network_args(args)
+
+
+class TestWebrtcMaskEnv:
+    def test_from_args_ignores_auto(self):
+        from hexium_browser.browser import webrtc_mask_ip_from_args
+
+        assert webrtc_mask_ip_from_args(["--hexium-webrtc-ip=auto"]) is None
+        assert webrtc_mask_ip_from_args(["--hexium-webrtc-ip=87.192.108.115"]) == (
+            "87.192.108.115"
+        )
+
+    def test_ensure_sets_env_and_kwargs(self, monkeypatch):
+        import os
+
+        from hexium_browser.browser import WEBRTC_MASK_ENV, _ensure_webrtc_mask_env
+
+        monkeypatch.delenv(WEBRTC_MASK_ENV, raising=False)
+        kwargs: dict = {}
+        _ensure_webrtc_mask_env(kwargs, ["--hexium-webrtc-ip=87.192.108.115"])
+        assert kwargs["env"][WEBRTC_MASK_ENV] == "87.192.108.115"
+        assert os.environ[WEBRTC_MASK_ENV] == "87.192.108.115"

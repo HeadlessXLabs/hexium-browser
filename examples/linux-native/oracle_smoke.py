@@ -4,8 +4,8 @@
 Prints key navigator signals after launch. Optionally visit a detection URL.
 
 Usage:
-    python examples/linux/oracle_smoke.py
-    python examples/linux/oracle_smoke.py --url https://bot.sannysoft.com
+    python examples/linux-native/oracle_smoke.py
+    python examples/linux-native/oracle_smoke.py --url https://bot.sannysoft.com
 """
 
 from __future__ import annotations

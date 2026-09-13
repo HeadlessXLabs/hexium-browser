@@ -1,7 +1,7 @@
 """Headless Linux persona: Vercel detector, then Infosimples, same tab, record video.
 
 Usage:
-    python examples/linux/test_headless.py
+    python examples/linux-native/test_headless.py
 """
 
 from pathlib import Path

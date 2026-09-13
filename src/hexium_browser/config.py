@@ -44,6 +44,17 @@ def _env_truthy(name: str) -> bool:
     return os.environ.get(name, "").strip().lower() in ("1", "true", "yes", "on")
 
 
+def allow_3p_cookies_enabled(explicit: bool | None = None) -> bool:
+    """HX-P4-04: optional ``--hexium-allow-3p-cookies``. Default off.
+
+    Launch ``allow_3p_cookies=True``/``False`` wins when set. Otherwise
+    ``HEXIUM_ALLOW_3P_COOKIES=1`` (or true/yes/on) enables the flag.
+    """
+    if explicit is not None:
+        return bool(explicit)
+    return _env_truthy("HEXIUM_ALLOW_3P_COOKIES")
+
+
 def linux_headed_gui_args() -> list[str]:
     """GTK4 + X11 so headed Chrome does not SIGSEGV on Lingmo GTK3.
 
@@ -476,7 +487,11 @@ def binary_supports_headless_no_viewport(
         return False
 
 
-HTTP_PROXY_INLINE_AUTH_MIN_VERSION: dict[str, str] = {
+# Inline HTTP proxy auth in --proxy-server=user:pass@host is a Cloak-style
+# network patch (HX-P2 gap — not in overlay yet). Until it ships, credentialed
+# HTTP proxies use Playwright's proxy dict. Opt in after rebuild:
+# HEXIUM_HTTP_PROXY_INLINE_AUTH=1
+HTTP_PROXY_INLINE_AUTH_FLOOR: dict[str, str] = {
     "linux-x64": "151.0.7922.174.1",
     "windows-x64": "151.0.7922.174.1",
     "linux-arm64": "151.0.7922.174.1",
@@ -485,10 +500,17 @@ HTTP_PROXY_INLINE_AUTH_MIN_VERSION: dict[str, str] = {
 }
 
 
+def _http_proxy_inline_auth_enabled() -> bool:
+    raw = os.environ.get("HEXIUM_HTTP_PROXY_INLINE_AUTH", "").strip().lower()
+    return raw in ("1", "true", "yes", "on")
+
+
 def binary_supports_http_proxy_inline_auth(
     browser_version: str | None = None,
 ) -> bool:
-    floor = HTTP_PROXY_INLINE_AUTH_MIN_VERSION.get(get_platform_tag())
+    if not _http_proxy_inline_auth_enabled():
+        return False
+    floor = HTTP_PROXY_INLINE_AUTH_FLOOR.get(get_platform_tag())
     if floor is None:
         return False
     try:
@@ -497,8 +519,46 @@ def binary_supports_http_proxy_inline_auth(
         declared = None
     if declared:
         version = declared
-    elif get_local_binary_override() or Path(get_default_hexium_binary_path()).exists():
-        return True
+    else:
+        version = get_effective_version()
+    try:
+        return not _version_newer(floor, version)
+    except (ValueError, AttributeError):
+        return False
+
+
+# Inline SOCKS5 proxy auth in --proxy-server=user:pass@host is a Cloak-style
+# network patch (HX-P2-11 gap — not in overlay yet). Until it ships, credentialed
+# SOCKS5 proxies use Playwright's proxy dict. Opt in after rebuild:
+# HEXIUM_SOCKS_PROXY_INLINE_AUTH=1
+SOCKS_PROXY_INLINE_AUTH_FLOOR: dict[str, str] = {
+    "linux-x64": "151.0.7922.174.1",
+    "windows-x64": "151.0.7922.174.1",
+    "linux-arm64": "151.0.7922.174.1",
+    "darwin-arm64": "151.0.7922.174.1",
+    "darwin-x64": "151.0.7922.174.1",
+}
+
+
+def _socks_proxy_inline_auth_enabled() -> bool:
+    raw = os.environ.get("HEXIUM_SOCKS_PROXY_INLINE_AUTH", "").strip().lower()
+    return raw in ("1", "true", "yes", "on")
+
+
+def binary_supports_socks_proxy_inline_auth(
+    browser_version: str | None = None,
+) -> bool:
+    if not _socks_proxy_inline_auth_enabled():
+        return False
+    floor = SOCKS_PROXY_INLINE_AUTH_FLOOR.get(get_platform_tag())
+    if floor is None:
+        return False
+    try:
+        declared = normalize_requested_version(browser_version)
+    except ValueError:
+        declared = None
+    if declared:
+        version = declared
     else:
         version = get_effective_version()
     try:

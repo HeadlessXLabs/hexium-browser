@@ -1,8 +1,10 @@
-"""Virtual mouse pointer — operator UX for CDP mouse (OS cursor never moves).
+"""Camoufox-style cursor highlighter — operator UX for CDP mouse.
 
-Looks like a normal mouse arrow, not a branded ring. Page JS still sees a
-DOM node; pass ``show_cursor=False`` on stealth oracles. Humanize itself is
-real ``mousemove`` events (detectable as a mouse).
+Playwright never moves the OS cursor. This is a ``div`` ring (same idea as
+Camoufox ``#cursor-highlighter`` in ``browser-init.patch``): 10px circle,
+concentric glow, ``pointer-events: none``. No SVG, no custom OS pointer, no
+``cursor: none``. Page JS still sees a DOM node; pass ``show_cursor=False`` on
+stealth oracles. Humanize itself is real ``mousemove`` events.
 """
 
 from __future__ import annotations
@@ -14,46 +16,44 @@ from .config import HumanConfig
 
 logger = logging.getLogger("hexium_browser.human.cursor")
 
-# Standard Windows/Linux mouse arrow (white fill, black stroke). Hotspot = tip.
-_MOUSE_POINTER = (
-    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" '
-    'viewBox="0 0 24 24" aria-hidden="true">'
-    '<path fill="#fff" stroke="#111" stroke-width="1.2" stroke-linejoin="round" '
-    'd="M3.2 2.4 4 19.2l4.55-4.35 2.7 6.45 2.45-1.05-2.7-6.4L17.2 13z"/>'
-    "</svg>"
-)
+# Camoufox chrome highlighter uses rgba(255,105,105,…) rings. Hexium demos
+# use the same geometry with the blue from examples/assets/cursor_highlighter.js.
+_HIGHLIGHTER_RGB = "59, 130, 246"
 
 HIGHLIGHTER_INIT_SCRIPT = f"""
 (() => {{
-  if (window.__hexiumCursorInstalled) return;
-  window.__hexiumCursorInstalled = true;
-
-  const style = document.createElement("style");
-  style.textContent = "html, body, *, *::before, *::after {{ cursor: none !important; }}";
-  (document.head || document.documentElement).appendChild(style);
+  if (document.getElementById("hexium-cursor-highlighter")) return;
 
   const el = document.createElement("div");
+  el.id = "hexium-cursor-highlighter";
   el.setAttribute("aria-hidden", "true");
   el.style.cssText = [
     "position:fixed",
     "left:0",
     "top:0",
-    "width:24px",
-    "height:24px",
+    "width:10px",
+    "height:10px",
+    "background-color:rgba({_HIGHLIGHTER_RGB},0.9)",
+    "border-radius:50%",
     "pointer-events:none",
     "z-index:2147483647",
-    "filter:drop-shadow(0 1px 1px rgba(0,0,0,0.35))",
+    "transform:translate(-50%,-50%)",
+    "box-shadow:0 0 0 5px rgba({_HIGHLIGHTER_RGB},0.5),"
+      + "0 0 0 10px rgba({_HIGHLIGHTER_RGB},0.3),"
+      + "0 0 0 15px rgba({_HIGHLIGHTER_RGB},0.12)",
   ].join(";");
-  el.innerHTML = {_MOUSE_POINTER!r};
 
   function mount() {{
     const root = document.body || document.documentElement;
-    if (root && !el.isConnected) root.appendChild(el);
+    if (root && !document.getElementById("hexium-cursor-highlighter")) {{
+      root.appendChild(el);
+    }}
   }}
 
   function onMove(e) {{
     mount();
-    el.style.transform = "translate(" + e.clientX + "px," + e.clientY + "px)";
+    el.style.left = e.clientX + "px";
+    el.style.top = e.clientY + "px";
   }}
 
   window.addEventListener("mousemove", onMove, true);
@@ -98,7 +98,7 @@ def _runtime_evaluate_main_sync(page: Any, expression: str) -> None:
             session.send("Runtime.evaluate", {"expression": expression})
             return
         except Exception as exc:
-            logger.debug("cursor pointer CDP evaluate failed: %s", exc)
+            logger.debug("cursor highlighter CDP evaluate failed: %s", exc)
     try:
         page.evaluate(expression)
     except Exception:
@@ -112,7 +112,7 @@ async def _runtime_evaluate_main_async(page: Any, expression: str) -> None:
             await session.send("Runtime.evaluate", {"expression": expression})
             return
         except Exception as exc:
-            logger.debug("cursor pointer CDP evaluate failed: %s", exc)
+            logger.debug("cursor highlighter CDP evaluate failed: %s", exc)
     try:
         await page.evaluate(expression)
     except Exception:
@@ -126,7 +126,7 @@ def install_cursor_overlay_sync(page: Any, cfg: HumanConfig) -> None:
     try:
         page.add_init_script(script)
     except Exception as exc:
-        logger.debug("Could not add mouse pointer init script: %s", exc)
+        logger.debug("Could not add cursor highlighter init script: %s", exc)
     _runtime_evaluate_main_sync(page, script)
 
 
@@ -137,7 +137,7 @@ async def install_cursor_overlay_async(page: Any, cfg: HumanConfig) -> None:
     try:
         await page.add_init_script(script)
     except Exception as exc:
-        logger.debug("Could not add mouse pointer init script: %s", exc)
+        logger.debug("Could not add cursor highlighter init script: %s", exc)
     await _runtime_evaluate_main_async(page, script)
 
 

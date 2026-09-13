@@ -8,7 +8,7 @@ from dataclasses import asdict, is_dataclass
 from pathlib import Path
 from typing import Any
 
-from .rewrite_ua import clamp_windows_ua_ch_platform_version
+from .rewrite_ua import clamp_windows_ua_ch_platform_version, sync_windows_frozen_ua_platform_version
 from .schema import (
     ENGINE_JSON_KEYS,
     LINUX_ENGINE_OMIT_KEYS,
@@ -95,6 +95,7 @@ def coerce_fingerprint(fp: Any, seed: str) -> PersonaDict:
         persona["ua_ch_platform_version"] = clamp_windows_ua_ch_platform_version(
             str(persona.get("ua_ch_platform_version") or "")
         )
+        sync_windows_frozen_ua_platform_version(persona)
     return persona
 
 

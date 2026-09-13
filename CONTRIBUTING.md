@@ -36,9 +36,9 @@ python -m pytest -m 'not slow'
 Examples:
 
 ```bash
-python examples/linux/linux_chrome_persona.py
-python examples/win/windows_chrome_persona.py --headed
-python examples/linux/stealth_test.py
+python examples/linux-chrome/linux_chrome_persona.py
+python examples/windows-chrome/windows_chrome_persona.py --headed
+python examples/linux-native/stealth_test.py
 ```
 
 Stealth/oracle scripts should pass `humanize=True` and `show_cursor=False` (the virtual pointer is a DOM tell).

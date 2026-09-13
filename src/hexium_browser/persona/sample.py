@@ -14,13 +14,15 @@ from .rewrite_ua import chrome_major_from_ua, rewrite_chrome_version
 from .schema import (
     CHROME_UA_VERSION,
     MAX_HARDWARE_CONCURRENCY,
+    MIN_DESKTOP_DEVICE_MEMORY_GB,
+    MIN_DESKTOP_HARDWARE_CONCURRENCY,
     MIN_SAMPLED_CHROME_MAJOR,
     PersonaDict,
     hash_seed_string,
 )
 from .validate import PersonaCoherenceError, validate_linux_chrome, validate_windows_chrome
 
-MAX_DRAWS = 10
+MAX_DRAWS = 40
 
 _LINUX_GENERATOR = None
 _WINDOWS_GENERATOR = None
@@ -116,8 +118,17 @@ def _sampled_chrome_major_ok(raw: dict) -> bool:
         cores_int = int(cores)
     except (TypeError, ValueError):
         return False
-    if cores_int > MAX_HARDWARE_CONCURRENCY or cores_int < 1:
+    if cores_int > MAX_HARDWARE_CONCURRENCY or cores_int < MIN_DESKTOP_HARDWARE_CONCURRENCY:
         return False
+    memory = nav.get("deviceMemory")
+    if memory is None:
+        memory = raw.get("device_memory")
+    if memory is not None:
+        try:
+            if float(memory) < MIN_DESKTOP_DEVICE_MEMORY_GB:
+                return False
+        except (TypeError, ValueError):
+            return False
     return True
 
 

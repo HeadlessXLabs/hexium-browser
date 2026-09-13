@@ -115,7 +115,7 @@ def test_windows_coerce_emits_gpu_fonts_and_disables_native_surfaces():
     assert engine["font_families"] == persona["font_families"]
     assert engine["system_ui_font"] == "Segoe UI"
     assert engine["use_native_surfaces"] is False
-    assert engine["ua_ch_platform_version"] == "15.0.0"
+    assert engine["ua_ch_platform_version"] == "10.0.0"
     assert "recorded_webgl_renderer" not in engine
     assert "recorded_fonts" not in engine
 
@@ -151,7 +151,7 @@ def test_windows_coerce_leaves_desktop_ua_ch_model_empty():
 
 def test_windows_coerce_keeps_ua_ch_platform_version():
     win11 = coerce_fingerprint(windows_chrome_147_fingerprint(), seed="seed-1")
-    assert win11["ua_ch_platform_version"] == "15.0.0"
+    assert win11["ua_ch_platform_version"] == "10.0.0"
 
     win10 = coerce_fingerprint(
         windows_chrome_147_fingerprint(
@@ -167,7 +167,7 @@ def test_windows_coerce_keeps_ua_ch_platform_version():
         ),
         seed="seed-1",
     )
-    assert contract19["ua_ch_platform_version"] == "15.0.0"
+    assert contract19["ua_ch_platform_version"] == "10.0.0"
 
 
 def test_windows_coerce_bumps_half_gig_device_memory():

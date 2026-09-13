@@ -25,7 +25,12 @@ Sites see **Google Chrome 151**. You see Hexium Browser — a C++ persona compil
   <a href="assets/recordings/google_search_human_headless_new_profile.webm">
     <img src="assets/recordings/google_search_human_headless_new_profile.gif" alt="Headless Google search, new profile" width="800">
   </a>
-  <br><em>Headless Google search, new profile — <code>examples/linux/google_search_human_headless_new_profile.py</code></em>
+  <br><em>Headless Google search, new profile — <code>examples/linux-native/google_search_human_headless_new_profile.py</code></em>
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/allegro_headed_linux.png" alt="Headed linux-native Allegro cookie consent — Dbamy o Twoją prywatność" width="800">
+  <br><em>Headed linux-native Allegro cookie consent — <code>examples/linux-native/allegro_pl_headed_http_proxy_ephemeral_random_profile.py</code></em>
 </p>
 
 ## Features
@@ -59,12 +64,12 @@ browser = launch(
 `browser.new_page()` opens a **tab**. Bare `launch()` is a new visitor each time; use `profile="Work"` or `HEXIUM_USER_DATA_DIR` to return to the same identity.
 
 ```bash
-python examples/linux/linux_chrome_persona.py
-python examples/win/windows_chrome_persona.py --headed
-python examples/linux/stealth_test.py
-python examples/linux/open_google.py
-python examples/linux/test_headless.py
-python examples/win/test_headless.py
+python examples/linux-chrome/linux_chrome_persona.py
+python examples/windows-chrome/windows_chrome_persona.py --headed
+python examples/linux-native/stealth_test.py
+python examples/linux-native/open_google.py
+python examples/linux-native/test_headless.py
+python examples/windows-chrome/test_headless.py
 ```
 
 ## Install
@@ -167,15 +172,22 @@ page.goto("https://example.com")
 - **JS stealth injectors break** — they patch `navigator` in page JS. Detection sites look for the patch. Hexium does not inject stealth scripts.
 - **Persona is compiled in** — GPU, screen, UA, and hardware reporting follow a sampled Chrome persona at the C++ layer, plus a persistent profile on disk.
 - **Same Playwright API** — `launch()`, `new_page()`, `click()`, `fill()`. Swap the import.
-- **Humanize is a flag** — Bézier mouse, per-character typing, realistic scroll. A virtual mouse pointer is on whenever `humanize` is on; pass `show_cursor=False` for stealth oracles.
+- **Humanize is a flag** — Bézier mouse, per-character typing, realistic scroll. Optional `show_cursor=True` for headed debug demos only.
 
 Hexium does not solve CAPTCHAs. Bring your own proxy. Use the Playwright API you already know.
 
 ## Test results
 
-Captured 12–13 Sep 2026 against live oracles with Chrome 151. These are screenshots, not a guarantee that every site will score the same.
+Captured 12–14 Sep 2026 against live oracles with Chrome 151. These are screenshots, not a guarantee that every site will score the same.
 
-Headless walk (`examples/linux/test_headless.py`, `examples/win/test_headless.py`): [headless-detector.vercel.app](https://headless-detector.vercel.app/) then [Infosimples detect-headless](https://infosimples.github.io/detect-headless/).
+Shop / cookie-consent capture (headed **linux-native**, ephemeral session, HTTP proxy placeholders): [Allegro](https://allegro.pl/) “Dbamy o Twoją prywatność” — `examples/linux-native/allegro_pl_headed_http_proxy_ephemeral_random_profile.py`.
+
+<p align="center">
+<img src="assets/screenshots/allegro_headed_linux.png" width="700" alt="Headed linux-native Allegro cookie consent">
+<br><em>Headed Linux native — Allegro consent. Use headed + ephemeral + your own proxy for shops; do not run this flow headless.</em>
+</p>
+
+Headless walk (`examples/linux-native/test_headless.py`, `examples/windows-chrome/test_headless.py`): [headless-detector.vercel.app](https://headless-detector.vercel.app/) then [Infosimples detect-headless](https://infosimples.github.io/detect-headless/).
 
 | Oracle | What the capture shows |
 | --- | --- |
@@ -206,14 +218,14 @@ Headless walk (`examples/linux/test_headless.py`, `examples/win/test_headless.py
 
 | ![Rebrowser bot detector](assets/screenshots/stealth_test_Rebrowser_Bot_Detector.png) | ![bot.incolumitas.com](assets/screenshots/stealth_test_bot_incolumitas_com.png) |
 | --- | --- |
-| Rebrowser bot detector — no webdriver, no Playwright init scripts | bot.incolumitas.com — `examples/linux/stealth_test.py` |
+| Rebrowser bot detector — no webdriver, no Playwright init scripts | bot.incolumitas.com — `examples/linux-native/stealth_test.py` |
 
 <details>
 <summary>CreepJS</summary>
 
 | ![CreepJS lies, noise=false](assets/screenshots/stealth_test_CreepJS_lies_%28noise=false%29.png) | ![CreepJS](assets/screenshots/creepjs.png) |
 | --- | --- |
-| CreepJS (noise=false) — `examples/linux/stealth_test.py` | CreepJS — `examples/linux/fingerprint_scan_test.py` |
+| CreepJS (noise=false) — `examples/linux-native/stealth_test.py` | CreepJS — `examples/linux-native/fingerprint_scan_test.py` |
 
 </details>
 
@@ -222,16 +234,16 @@ Headless walk (`examples/linux/test_headless.py`, `examples/win/test_headless.py
 
 <p align="center">
 <img src="assets/screenshots/fingerprint-scan.png" width="600" alt="fingerprint-scan.com">
-<br><em>fingerprint-scan.com — <code>examples/linux/fingerprint_scan_test.py</code></em>
+<br><em>fingerprint-scan.com — <code>examples/linux-native/fingerprint_scan_test.py</code></em>
 </p>
 
 </details>
 
-Stealth/oracle examples pass `humanize=True` and **`show_cursor=False`**. The virtual pointer is a DOM tell. `launch()` turns it **on** whenever `humanize` is on; pass `False` to hide it.
+Stealth/oracle examples pass `humanize=True` and leave **`show_cursor` off** (default). Pass `show_cursor=True` only in headed debug demos such as `humanize_click_demo.py`.
 
 ## Humanize
 
-`launch()` defaults to `humanize=True`, and `show_cursor` follows that. Playwright never moves the OS cursor — a standard mouse arrow is the virtual pointer.
+`launch()` defaults to `humanize=True` and `show_cursor=False`. Pass `show_cursor=True` in [`humanize_click_demo.py`](examples/linux-native/humanize_click_demo.py) to see the blue debug ring.
 
 ```python
 from hexium_browser import launch
@@ -275,14 +287,14 @@ page.locator("button[type=submit]").click()
 | **[`linux-native`](docs/persona/linux-native.md)** | This machine | Host GPU, fonts, screen, CPU | **Linux default.** |
 | **[`windows-native`](docs/persona/windows-native.md)** | This Windows machine | Host GPU, fonts, screen, CPU | **Windows default.** |
 | **[`macos-native`](docs/persona/macos-native.md)** | This macOS machine | Host GPU/fonts | **macOS default.** Alias `mac-native`. No `macos-chrome`. |
-| **[`linux-chrome`](docs/persona/linux-chrome.md)** | Linux Chrome 151 | **Host** GPU and fonts; screen/CPU/RAM still sampled | `persona="linux-chrome"` |
+| **[`linux-chrome`](docs/persona/linux-chrome.md)** | Linux x86_64 + Chrome 151 | Sampled screen/CPU/RAM; GPU/WebGL and fonts stay host (no Mesa/font jail) | `persona="linux-chrome"` |
 | **[`windows-chrome`](docs/persona/windows-chrome.md)** | Win32 + Chrome 151 | Sampled D3D11 WebGL + Segoe pack. On Linux: known WebGL −5% pixel-vs-name tell (not claimed fixed). | `persona="windows-chrome"` (alias `windows-1080p`) |
 
 ```python
 from hexium_browser import launch
 
 launch()                              # Linux: linux-native + GeoIP tz/lang
-launch(persona="linux-chrome")        # Linux UA, real GPU, sampled screen
+launch(persona="linux-chrome")        # Linux UA, sampled screen/CPU/RAM, host GPU/fonts
 launch(persona="windows-chrome")      # Win32 UA + D3D + Segoe pack
 launch(fingerprint="off")             # fingerprint patches off
 launch(persona="windows-chrome", fingerprint="account-1")  # same machine next time
@@ -291,8 +303,8 @@ launch(persona="windows-chrome", fingerprint="account-1")  # same machine next t
 Windows-on-Linux needs the Segoe pack shipped in the wrapper (`HEXIUM_FONTS_DIR` overrides). Desktop UA-CH `model` is **empty** (stock Chrome 151). Do not cartesian OS×GPU — one OS + one joint sample.
 
 ```bash
-python examples/linux/linux_chrome_persona.py
-python examples/win/windows_chrome_persona.py --headed
+python examples/linux-chrome/linux_chrome_persona.py
+python examples/windows-chrome/windows_chrome_persona.py --headed
 ```
 
 ### What is random vs sticky
@@ -314,7 +326,7 @@ GeoIP does not re-roll the GPU. Explicit `timezone=` / `locale=` always win over
 
 <p align="center">
 <img src="assets/screenshots/linux_chrome_persona.png" width="600" alt="linux-chrome persona on example.com">
-<br><em>linux-chrome persona on example.com (<code>examples/linux/linux_chrome_persona.py</code>)</em>
+<br><em>linux-chrome persona on example.com (<code>examples/linux-chrome/linux_chrome_persona.py</code>)</em>
 </p>
 
 ## Binary
@@ -486,5 +498,5 @@ Python `hexium_browser` already ships ([PyPI](https://pypi.org/project/hexium-br
 - **Python API** — [GNU Affero GPL v3.0 only](LICENSE.md) (not “or later”)
 - **`chrome` binary** — [BINARY-LICENSE.md](BINARY-LICENSE.md) (Chromium notices + Hexium build)
 
-Last reviewed: 13 Sep 2026
+Last reviewed: 14 Sep 2026
 

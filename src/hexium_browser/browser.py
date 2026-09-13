@@ -25,9 +25,11 @@ from urllib.parse import quote, unquote, urlparse, urlunparse
 from .config import (
     DEFAULT_VIEWPORT,
     IGNORE_DEFAULT_ARGS,
+    allow_3p_cookies_enabled,
     apply_linux_headed_gui_env,
     binary_supports_headless_no_viewport,
     binary_supports_http_proxy_inline_auth,
+    binary_supports_socks_proxy_inline_auth,
     binary_supports_maximized_window,
     get_default_hexium_binary_path,
     get_default_stealth_args,
@@ -41,7 +43,7 @@ from .download import ensure_binary
 from .persona.coerce import load_persona_json, write_persona_json
 from .persona.fonts import WindowsFontPackError, generate_windows_fontconfig
 from .persona.geo_overlay import apply_geoip
-from .persona.rewrite_ua import clamp_windows_ua_ch_platform_version, rewrite_chrome_version
+from .persona.rewrite_ua import finalize_windows_persona, rewrite_chrome_version
 from .persona.sample import sample_linux_chrome, sample_windows_chrome
 from .persona.schema import CHROME_UA_VERSION
 from .human.config import HumanConfigOverrides, HumanPreset
@@ -51,9 +53,10 @@ logger = logging.getLogger("hexium_browser")
 
 
 def _resolve_show_cursor(show_cursor: bool | None, humanize: bool) -> bool:
-    """Highlighter follows humanize unless the caller set show_cursor explicitly."""
+    """Debug ring is opt-in; humanize works without a DOM overlay."""
+    del humanize
     if show_cursor is None:
-        return bool(humanize)
+        return False
     return bool(show_cursor)
 
 
@@ -347,6 +350,7 @@ def launch(
     profile: str | None = None,
     ephemeral: bool = False,
     persona: str | None = None,
+    allow_3p_cookies: bool | None = None,
     _suppress_maximize: bool = False,
     **kwargs: Any,
 ) -> Any:
@@ -371,14 +375,16 @@ def launch(
             ``windows-1080p`` → ``windows-chrome``, ``mac-native`` →
             ``macos-native``. A ``*-native`` name that does not match this
             OS remaps to the host native.
+        allow_3p_cookies: Pass ``--hexium-allow-3p-cookies`` (HX-P4-04). Default
+            off. ``True``/``False`` override ``HEXIUM_ALLOW_3P_COOKIES``.
         geoip: Map timezone, locale, and ``navigator.languages`` to the egress IP
             (proxy exit, or the machine public IP when there is no proxy). Default
             True. Pass ``geoip=False`` to opt out. Explicit ``timezone=`` /
             ``locale=`` still win. Requires ``pip install 'hexium-browser[geoip]'``.
         humanize: Human-like mouse, keys, scroll (default True).
-        show_cursor: Virtual mouse pointer (standard arrow; OS cursor does
-            not move). Default follows ``humanize``. Pass ``False`` on
-            stealth oracles (DOM tell).
+        show_cursor: Optional blue Camoufox-style ring (debug only). Default
+            ``False``. Pass ``True`` in headed demos such as
+            ``humanize_click_demo.py``. Real sites: keep ``False``.
         **kwargs: Forwarded to ``launch_persistent_context``.
     """
     _check_removed_kwargs(kwargs)
@@ -404,6 +410,7 @@ def launch(
         extension_paths=extension_paths,
         browser_version=browser_version,
         persona=persona,
+        allow_3p_cookies=allow_3p_cookies,
         **kwargs,
     )
     browser = _browser_from_persistent(context)
@@ -430,6 +437,7 @@ async def launch_async(  # noqa: C901
     profile: str | None = None,
     ephemeral: bool = False,
     persona: str | None = None,
+    allow_3p_cookies: bool | None = None,
     _suppress_maximize: bool = False,
     **kwargs: Any,
 ) -> Any:
@@ -437,7 +445,8 @@ async def launch_async(  # noqa: C901
 
     ``geoip`` defaults True (egress IP → timezone/locale/languages). Pass
     ``geoip=False`` to opt out; explicit ``timezone=`` / ``locale=`` still win.
-    ``show_cursor`` defaults to follow ``humanize``.
+    ``show_cursor`` defaults to ``False`` (pass ``True`` for headed debug demos).
+    ``allow_3p_cookies`` defaults off (``HEXIUM_ALLOW_3P_COOKIES=1`` or True).
     """
     _check_removed_kwargs(kwargs)
     if _suppress_maximize:
@@ -462,6 +471,7 @@ async def launch_async(  # noqa: C901
         extension_paths=extension_paths,
         browser_version=browser_version,
         persona=persona,
+        allow_3p_cookies=allow_3p_cookies,
         **kwargs,
     )
     browser = _browser_from_persistent(context)
@@ -489,6 +499,7 @@ def launch_persistent_context(
     extension_paths: list[str] | None = None,
     browser_version: str | None = None,
     persona: str | None = None,
+    allow_3p_cookies: bool | None = None,
     **kwargs: Any,
 ) -> Any:
     """Launch stealth browser with a persistent profile and return a BrowserContext.
@@ -520,9 +531,9 @@ def launch_persistent_context(
         humanize: Enable human-like mouse, keyboard, scroll behavior (default True).
         human_preset: Humanize preset — 'default' or 'careful' (default 'default').
         human_config: Custom humanize config mapping to override preset values.
-        show_cursor: Virtual mouse pointer (standard arrow; OS cursor does
-            not move). Default follows ``humanize``. Pass ``False`` on
-            stealth oracles (DOM tell).
+        show_cursor: Optional blue Camoufox-style ring (debug only). Default
+            ``False``. Pass ``True`` in headed demos such as
+            ``humanize_click_demo.py``. Real sites: keep ``False``.
         **kwargs: Passed directly to playwright.chromium.launch_persistent_context().
 
     Returns:
@@ -549,7 +560,7 @@ def launch_persistent_context(
     proxy_kwargs, proxy_extra_args = _resolve_proxy_config(proxy, browser_version)
     args = _resolve_webrtc_args(args, proxy)
     args = _append_webrtc_exit_ip(args, exit_ip)
-    chrome_args = build_args(stealth_args, (args or []) + proxy_extra_args, timezone=timezone, locale=locale, headless=headless, extension_paths=extension_paths, start_maximized=binary_supports_maximized_window(browser_version) and viewport is _VIEWPORT_UNSET and "viewport" not in kwargs and "no_viewport" not in kwargs, fingerprint=fingerprint, user_data_dir=user_data_dir, persona=persona)
+    chrome_args = build_args(stealth_args, (args or []) + proxy_extra_args, timezone=timezone, locale=locale, headless=headless, extension_paths=extension_paths, start_maximized=binary_supports_maximized_window(browser_version) and viewport is _VIEWPORT_UNSET and "viewport" not in kwargs and "no_viewport" not in kwargs, fingerprint=fingerprint, user_data_dir=user_data_dir, persona=persona, allow_3p_cookies=allow_3p_cookies)
     _maybe_warn_windows_fonts(chrome_args)
 
     logger.debug(
@@ -576,6 +587,7 @@ def launch_persistent_context(
     _ensure_windows_fontconfig_env(context_kwargs, chrome_args, user_data_dir)
     _ensure_persona_json_env(context_kwargs, user_data_dir)
     _ensure_locale_env(context_kwargs, locale)
+    _ensure_webrtc_mask_env(context_kwargs, chrome_args)
 
     seed_classic_theme_prefs(user_data_dir)
     seed_widevine_hint(user_data_dir, binary_path)
@@ -642,6 +654,7 @@ async def launch_persistent_context_async(
     extension_paths: list[str] | None = None,
     browser_version: str | None = None,
     persona: str | None = None,
+    allow_3p_cookies: bool | None = None,
     **kwargs: Any,
 ) -> Any:
     """Async version of launch_persistent_context().
@@ -671,9 +684,9 @@ async def launch_persistent_context_async(
         humanize: Enable human-like mouse, keyboard, scroll behavior (default True).
         human_preset: Humanize preset — 'default' or 'careful' (default 'default').
         human_config: Custom humanize config mapping to override preset values.
-        show_cursor: Virtual mouse pointer (standard arrow; OS cursor does
-            not move). Default follows ``humanize``. Pass ``False`` on
-            stealth oracles (DOM tell).
+        show_cursor: Optional blue Camoufox-style ring (debug only). Default
+            ``False``. Pass ``True`` in headed demos such as
+            ``humanize_click_demo.py``. Real sites: keep ``False``.
         **kwargs: Passed directly to playwright.chromium.launch_persistent_context().
 
     Returns:
@@ -705,7 +718,7 @@ async def launch_persistent_context_async(
     proxy_kwargs, proxy_extra_args = _resolve_proxy_config(proxy, browser_version)
     args = _resolve_webrtc_args(args, proxy)
     args = _append_webrtc_exit_ip(args, exit_ip)
-    chrome_args = build_args(stealth_args, (args or []) + proxy_extra_args, timezone=timezone, locale=locale, headless=headless, extension_paths=extension_paths, start_maximized=binary_supports_maximized_window(browser_version) and viewport is _VIEWPORT_UNSET and "viewport" not in kwargs and "no_viewport" not in kwargs, fingerprint=fingerprint, user_data_dir=user_data_dir, persona=persona)
+    chrome_args = build_args(stealth_args, (args or []) + proxy_extra_args, timezone=timezone, locale=locale, headless=headless, extension_paths=extension_paths, start_maximized=binary_supports_maximized_window(browser_version) and viewport is _VIEWPORT_UNSET and "viewport" not in kwargs and "no_viewport" not in kwargs, fingerprint=fingerprint, user_data_dir=user_data_dir, persona=persona, allow_3p_cookies=allow_3p_cookies)
     _maybe_warn_windows_fonts(chrome_args)
 
     logger.debug(
@@ -732,6 +745,7 @@ async def launch_persistent_context_async(
     _ensure_windows_fontconfig_env(context_kwargs, chrome_args, user_data_dir)
     _ensure_persona_json_env(context_kwargs, user_data_dir)
     _ensure_locale_env(context_kwargs, locale)
+    _ensure_webrtc_mask_env(context_kwargs, chrome_args)
 
     seed_classic_theme_prefs(user_data_dir)
     seed_widevine_hint(user_data_dir, binary_path)
@@ -797,6 +811,7 @@ def launch_context(
     extension_paths: list[str] | None = None,
     browser_version: str | None = None,
     persona: str | None = None,
+    allow_3p_cookies: bool | None = None,
     **kwargs: Any,
 ) -> Any:
     """Launch stealth browser and return a BrowserContext with common options pre-set.
@@ -825,9 +840,9 @@ def launch_context(
         humanize: Enable human-like mouse, keyboard, scroll behavior (default True).
         human_preset: Humanize preset — 'default' or 'careful' (default 'default').
         human_config: Custom humanize config mapping to override preset values.
-        show_cursor: Virtual mouse pointer (standard arrow; OS cursor does
-            not move). Default follows ``humanize``. Pass ``False`` on
-            stealth oracles (DOM tell).
+        show_cursor: Optional blue Camoufox-style ring (debug only). Default
+            ``False``. Pass ``True`` in headed demos such as
+            ``humanize_click_demo.py``. Real sites: keep ``False``.
         **kwargs: Passed to browser.new_context().
 
     Returns:
@@ -864,6 +879,7 @@ def launch_context(
         extension_paths=extension_paths,
         browser_version=browser_version,
         persona=persona,
+        allow_3p_cookies=allow_3p_cookies,
         **kwargs,
     )
 
@@ -887,6 +903,7 @@ async def launch_context_async(
     extension_paths: list[str] | None = None,
     browser_version: str | None = None,
     persona: str | None = None,
+    allow_3p_cookies: bool | None = None,
     **kwargs: Any,
 ) -> Any:
     """Async version of launch_context().
@@ -916,9 +933,9 @@ async def launch_context_async(
         humanize: Enable human-like mouse, keyboard, scroll behavior (default True).
         human_preset: Humanize preset — 'default' or 'careful' (default 'default').
         human_config: Custom humanize config mapping to override preset values.
-        show_cursor: Virtual mouse pointer (standard arrow; OS cursor does
-            not move). Default follows ``humanize``. Pass ``False`` on
-            stealth oracles (DOM tell).
+        show_cursor: Optional blue Camoufox-style ring (debug only). Default
+            ``False``. Pass ``True`` in headed demos such as
+            ``humanize_click_demo.py``. Real sites: keep ``False``.
         **kwargs: Passed to browser.new_context() — e.g. storage_state, permissions.
 
     Returns:
@@ -974,6 +991,7 @@ async def launch_context_async(
         extension_paths=extension_paths,
         browser_version=browser_version,
         persona=persona,
+        allow_3p_cookies=allow_3p_cookies,
         **kwargs,
     )
 
@@ -1218,7 +1236,37 @@ def _append_webrtc_exit_ip(
     if exit_ip and not (args and any(a.startswith("--hexium-webrtc-ip") for a in args)):
         args = list(args or [])
         args.append(f"--hexium-webrtc-ip={exit_ip}")
+        logger.info("WebRTC egress IP set to %s (matches GeoIP proxy exit)", exit_ip)
     return args
+
+
+WEBRTC_MASK_ENV = "HEXIUM_WEBRTC_MASK_IP"
+
+
+def webrtc_mask_ip_from_args(args: list[str] | None) -> str | None:
+    """Return ``--hexium-webrtc-ip=`` value, ignoring ``auto``."""
+    for a in args or []:
+        if a.startswith("--hexium-webrtc-ip="):
+            value = a.split("=", 1)[1].strip()
+            if value and value != "auto":
+                return value
+    return None
+
+
+def _ensure_webrtc_mask_env(kwargs: dict[str, Any], chrome_args: list[str] | None) -> None:
+    """Publish the ICE mask IP to Chromium children (zygote/renderer).
+
+    ``--hexium-webrtc-ip`` is not always copied onto renderer argv. The
+    environment is inherited, so HEXIUM_WEBRTC_MASK_IP fills host/srflx ICE.
+    """
+    ip = webrtc_mask_ip_from_args(chrome_args)
+    if not ip:
+        return
+    os.environ[WEBRTC_MASK_ENV] = ip
+    existing = kwargs.get("env")
+    env = dict(existing) if existing is not None else dict(os.environ)
+    env[WEBRTC_MASK_ENV] = ip
+    kwargs["env"] = env
 
 
 def _apply_linux_windows_chrome_webgpu_flags(
@@ -1262,6 +1310,7 @@ def build_args(
     fingerprint: str | None = None,
     user_data_dir: str | os.PathLike | None = None,
     persona: str | None = None,
+    allow_3p_cookies: bool | None = None,
 ) -> list[str]:
     """Combine stealth args with user-provided args and locale flags.
 
@@ -1326,6 +1375,9 @@ def build_args(
         seen["--hexium-persona"] = (
             f"--hexium-persona={normalize_persona_preset(persona)}"
         )
+
+    if allow_3p_cookies_enabled(allow_3p_cookies):
+        seen.setdefault("--hexium-allow-3p-cookies", "--hexium-allow-3p-cookies")
 
     _apply_linux_windows_chrome_webgpu_flags(seen, fingerprint)
 
@@ -1445,7 +1497,7 @@ def _attach_persona_file(
 
     if persona is None:
         if preset == "windows-chrome":
-            persona = sample_windows_chrome(seed)
+            persona = finalize_windows_persona(sample_windows_chrome(seed))
         else:
             persona = sample_linux_chrome(seed)
     else:
@@ -1453,9 +1505,7 @@ def _attach_persona_file(
         persona = rewrite_chrome_version(persona, CHROME_UA_VERSION)
         persona["ua_ch_model"] = ""
         if preset == "windows-chrome":
-            persona["ua_ch_platform_version"] = clamp_windows_ua_ch_platform_version(
-                str(persona.get("ua_ch_platform_version") or "")
-            )
+            persona = finalize_windows_persona(persona)
     webrtc_ip = None
     webrtc_flag = seen.get("--hexium-webrtc-ip")
     if webrtc_flag and "=" in webrtc_flag:
@@ -1632,6 +1682,49 @@ def _maybe_warn_windows_fonts(chrome_args: list[str]) -> None:
         pass
 
 
+def _parse_socks_proxy_url(proxy: str) -> dict[str, Any]:
+    """Parse SOCKS5 URL into a Playwright proxy dict (server + username/password)."""
+    normalized = proxy
+    if "@" in proxy and "://" not in proxy:
+        normalized = f"socks5://{proxy}"
+    elif "://" not in proxy:
+        normalized = f"socks5://{proxy}"
+
+    try:
+        parsed = urlparse(normalized)
+        _ = parsed.port
+    except ValueError as e:
+        logger.warning("Malformed SOCKS5 proxy URL, using Playwright dict as-is: %s", e)
+        try:
+            parsed = urlparse(normalized)
+        except ValueError:
+            return {"server": proxy if "://" in proxy else normalized}
+        if not parsed.username:
+            return {"server": proxy if "://" in proxy else normalized}
+        result: dict[str, Any] = {"server": proxy if "://" in proxy else normalized}
+        result["username"] = unquote(parsed.username)
+        if parsed.password is not None:
+            result["password"] = unquote(parsed.password)
+        return result
+
+    if not parsed.username:
+        return {"server": proxy if "://" in proxy else normalized}
+
+    server = _assemble_proxy_url(
+        parsed.scheme or "socks5",
+        parsed.hostname or "",
+        parsed.port,
+        "", None,
+        parsed.path, parsed.params, parsed.query, parsed.fragment,
+    )
+
+    result: dict[str, Any] = {"server": server}
+    result["username"] = unquote(parsed.username)
+    if parsed.password is not None:
+        result["password"] = unquote(parsed.password)
+    return result
+
+
 def _parse_proxy_url(proxy: str) -> dict[str, Any]:
     """Parse HTTP(S) proxy URL, extracting credentials into separate Playwright fields.
 
@@ -1734,17 +1827,40 @@ def _is_socks_proxy(proxy: str | ProxySettings | None) -> bool:
     return url.lower().startswith(("socks5://", "socks5h://"))
 
 
+def _with_proxy_network_compat(extra_args: list[str] | None = None) -> list[str]:
+    """HTTP CONNECT proxies often hang on HTTP/2 or QUIC (e.g. Google via Playwright).
+
+    Also force WebRTC onto the proxied path so STUN/host ICE does not use the
+    machine's default UDP route (real public IP).
+
+    ``--hexium-proxy=1`` marks a Playwright proxy session for engine HX-P2-07
+    mitigation when Chromium never sees ``--proxy-server`` (credentialed HTTP
+    via Playwright dict). Harmless if the binary does not define the switch.
+    """
+    args = list(extra_args or [])
+    flags = (
+        "--hexium-proxy=1",
+        "--disable-http2",
+        "--disable-quic",
+        "--force-webrtc-ip-handling-policy=disable_non_proxied_udp",
+    )
+    for flag in flags:
+        key = flag.split("=", 1)[0]
+        if not any(a == flag or a.startswith(f"{key}=") for a in args):
+            args.append(flag)
+    return args
+
+
 def _resolve_proxy_config(
     proxy: str | ProxySettings | None,
     browser_version: str | None = None,
 ) -> tuple[dict[str, Any], list[str]]:
     """Resolve proxy into Playwright kwargs and Chrome args.
 
-    Proxies with credentials (SOCKS5 always; HTTP/HTTPS only on binaries that
-    support inline proxy auth) are passed via Chrome's --proxy-server flag with
-    inline credentials, bypassing Playwright's CDP auth interceptor which breaks
-    on some proxies and Google domains (#182). HTTP/HTTPS creds on older binaries
-    fall back to Playwright's proxy dict.
+    Credentialed proxies use Chrome's --proxy-server with inline credentials only
+    when the binary ships the matching network patch (opt-in via env). Otherwise
+    Playwright's proxy dict is used. SOCKS5 without credentials still uses
+    --proxy-server=socks5://host:port.
 
     Returns:
         (proxy_kwargs, extra_chrome_args) — one or both will be empty.
@@ -1753,18 +1869,32 @@ def _resolve_proxy_config(
         return {}, []
 
     if _is_socks_proxy(proxy):
-        # SOCKS5: bypass Playwright, pass directly to Chrome via --proxy-server.
-        # Chrome handles SOCKS5 auth natively from the URL.
+        if _has_credentials(proxy) and binary_supports_socks_proxy_inline_auth(
+            browser_version
+        ):
+            if isinstance(proxy, dict):
+                url = _reconstruct_socks_url(proxy)
+                extra_args = [f"--proxy-server={url}"]
+                bypass = proxy.get("bypass")
+                if bypass:
+                    extra_args.append(f"--proxy-bypass-list={bypass}")
+                return {}, _with_proxy_network_compat(extra_args)
+            return {}, _with_proxy_network_compat(
+                [f"--proxy-server={_normalize_socks_string_url(proxy)}"]
+            )
+
+        if _has_credentials(proxy):
+            if isinstance(proxy, dict):
+                return {"proxy": dict(proxy)}, _with_proxy_network_compat([])
+            return {"proxy": _parse_socks_proxy_url(proxy)}, _with_proxy_network_compat([])
+
         if isinstance(proxy, dict):
-            url = _reconstruct_socks_url(proxy)
-            extra_args = [f"--proxy-server={url}"]
+            extra_args = [f"--proxy-server={proxy['server']}"]
             bypass = proxy.get("bypass")
             if bypass:
                 extra_args.append(f"--proxy-bypass-list={bypass}")
-            return {}, extra_args
-        # String URL — re-encode creds to work around Chromium parser truncating
-        # passwords at '=' and other special chars (#157).
-        return {}, [f"--proxy-server={_normalize_socks_string_url(proxy)}"]
+            return {}, _with_proxy_network_compat(extra_args)
+        return {}, _with_proxy_network_compat([f"--proxy-server={proxy}"])
 
     # HTTP/HTTPS with credentials, only on binaries that ship inline proxy auth:
     # use Chrome's native proxy authentication path instead of Playwright's CDP
@@ -1777,10 +1907,12 @@ def _resolve_proxy_config(
             bypass = proxy.get("bypass")
             if bypass:
                 extra_args.append(f"--proxy-bypass-list={bypass}")
-            return {}, extra_args
-        return {}, [f"--proxy-server={_normalize_http_string_url(proxy)}"]
+            return {}, _with_proxy_network_compat(extra_args)
+        return {}, _with_proxy_network_compat(
+            [f"--proxy-server={_normalize_http_string_url(proxy)}"]
+        )
 
     # HTTP/HTTPS without credentials: use Playwright's proxy dict
     if isinstance(proxy, dict):
-        return {"proxy": proxy}, []
-    return {"proxy": _parse_proxy_url(proxy)}, []
+        return {"proxy": proxy}, _with_proxy_network_compat([])
+    return {"proxy": _parse_proxy_url(proxy)}, _with_proxy_network_compat([])

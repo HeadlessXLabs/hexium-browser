@@ -22,11 +22,13 @@ CI on Ubuntu: [docs/CI.md](docs/CI.md).
 | Path | Purpose |
 | --- | --- |
 | `src/hexium_browser/` | Playwright `launch()` wrapper |
-| `examples/linux/oracle_smoke.py` | Minimal oracle probe |
-| `examples/linux/stealth_test.py` | Full stealth suite |
-| `examples/linux/open_google.py` | Headed Google tab (persistent profile) |
-| `examples/linux/test_headless.py` | Headless Vercel + Infosimples walk (video) |
-| `examples/win/test_headless.py` | Same walk, `windows-chrome` persona |
+| `examples/linux-native/oracle_smoke.py` | Minimal oracle probe |
+| `examples/linux-native/stealth_test.py` | Full stealth suite |
+| `examples/linux-native/open_google.py` | Headed Google tab (persistent profile) |
+| `examples/linux-native/test_headless.py` | Headless Vercel + Infosimples walk (video) |
+| `examples/linux-native/allegro_pl_headed_http_proxy_ephemeral_random_profile.py` | Headed `linux-native` allegro.pl (`HEXIUM_PROXY`, ephemeral random profile) |
+| `examples/windows-chrome/allegro_pl_headed_windows_chrome_http_proxy_ephemeral_random_profile.py` | Headed `windows-chrome` allegro.pl (`HEXIUM_PROXY`, ephemeral random profile) |
+| `examples/windows-chrome/test_headless.py` | Same walk, `windows-chrome` persona |
 | `tests/` | Unit tests (mostly mocked; no binary required) |
 
 Playwright examples only. No Selenium / Puppeteer / crawl4ai / Lambda integrations.
@@ -35,28 +37,21 @@ Unpack `Hexium-{VERSION}-linux-x64.tar.gz` to get `hexium-v{VERSION}/chrome`. Po
 
 ## Visual mouse pointer (headed debug)
 
-A standard mouse arrow follows CDP `mousemove` from humanized `page.mouse` / `page.click()`. **Not** your OS mouse. Pass `show_cursor=False` on stealth oracles.
+Blue debug ring (optional): pass `show_cursor=True` in headed demos such as `examples/linux-native/humanize_click_demo.py`. Default is off — use that on real sites and oracles.
 
 ```bash
 pip install -e '.[dev,geoip]'
 hexium-browser fetch
 
-python -c "
-from hexium_browser import launch
-browser = launch(headless=False, humanize=True)
-page = browser.new_page()
-page.goto('https://example.com')
-page.click('a')
-browser.close()
-"
+python examples/linux-native/humanize_click_demo.py
 ```
 
 Oracle examples:
 
 ```bash
-python examples/linux/oracle_smoke.py
-python examples/linux/oracle_smoke.py --url https://bot.sannysoft.com
-python examples/linux/stealth_test.py
+python examples/linux-native/oracle_smoke.py
+python examples/linux-native/oracle_smoke.py --url https://bot.sannysoft.com
+python examples/linux-native/stealth_test.py
 ```
 
 ## Unit tests

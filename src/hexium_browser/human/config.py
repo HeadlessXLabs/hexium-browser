@@ -138,7 +138,7 @@ class HumanConfig:
     idle_between_actions: bool = False
     idle_between_duration: Range = (0.3, 0.8)
 
-    # Visual highlighter (headed debugging only — detectable in DOM)
+    # Visual highlighter (headed debugging only — Camoufox-style ring, detectable in DOM)
     show_cursor_overlay: bool = False
     cursor_preset: str = "hexium"  # hexium | pointer | hand | ring
     cursor_svg: str = ""  # optional raw SVG; overrides preset when set

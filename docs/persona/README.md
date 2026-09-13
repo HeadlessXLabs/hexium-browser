@@ -7,7 +7,7 @@
 | [linux-native](linux-native.md) | Linux | This machine |
 | [windows-native](windows-native.md) | Windows | This machine |
 | [macos-native](macos-native.md) | macOS | This machine. Alias `mac-native`. |
-| [linux-chrome](linux-chrome.md) | — | Opt-in Linux sampled screen/CPU; host GPU/fonts |
+| [linux-chrome](linux-chrome.md) | — | Opt-in Linux x86_64 + Chrome 151; sampled screen/CPU/RAM; host GPU/fonts |
 | [windows-chrome](windows-chrome.md) | — | Opt-in Win32 + D3D + Segoe. Alias `windows-1080p`. |
 
 Wrong-OS `*-native` remaps to the host native (example: `windows-native` on Linux → `linux-native`). UA is Chrome **151.0.7922.174**. GeoIP still fills timezone/locale from the egress IP.

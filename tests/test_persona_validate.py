@@ -101,7 +101,7 @@ def test_rejects_mobile_screen():
 
 def test_rejects_segoe_calibri_only_font_list():
     persona = _valid_persona(recorded_fonts=["Segoe UI", "Calibri"])
-    with pytest.raises(PersonaCoherenceError, match="Segoe|Calibri"):
+    with pytest.raises(PersonaCoherenceError, match="Windows marker fonts|Segoe|Calibri"):
         validate_linux_chrome(persona)
 
 
@@ -229,3 +229,61 @@ def test_windows_rejects_384_hardware_concurrency():
     persona = _valid_windows_persona(hardware_concurrency=384)
     with pytest.raises(PersonaCoherenceError, match="hardware_concurrency"):
         validate_windows_chrome(persona)
+
+
+def test_linux_rejects_brave_uach_brand():
+    persona = _valid_persona(
+        ua_ch_brands=[
+            {"brand": "Not:A-Brand", "version": "8"},
+            {"brand": "Chromium", "version": "151"},
+            {"brand": "Brave", "version": "144"},
+        ],
+        ua_ch_full_version_list=[
+            {"brand": "Not:A-Brand", "version": "8.0.0.0"},
+            {"brand": "Chromium", "version": CHROME_UA_VERSION},
+            {"brand": "Brave", "version": "144.0.0.0"},
+        ],
+    )
+    with pytest.raises(PersonaCoherenceError, match="leftover"):
+        validate_linux_chrome(persona)
+
+
+def test_windows_rejects_brave_uach_brand():
+    persona = _valid_windows_persona(
+        ua_ch_brands=[
+            {"brand": "Not:A-Brand", "version": "99"},
+            {"brand": "Brave", "version": "145"},
+            {"brand": "Chromium", "version": "151"},
+        ]
+    )
+    with pytest.raises(PersonaCoherenceError, match="leftover"):
+        validate_windows_chrome(persona)
+
+
+def test_linux_rejects_windows_nt_ua():
+    persona = _valid_persona(
+        user_agent=(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            f"(KHTML, like Gecko) Chrome/{CHROME_UA_VERSION} Safari/537.36"
+        )
+    )
+    with pytest.raises(PersonaCoherenceError, match="Windows UA"):
+        validate_linux_chrome(persona)
+
+
+def test_linux_rejects_adreno_desktop_gpu():
+    persona = _valid_persona(recorded_webgl_renderer="Adreno (TM) 730")
+    with pytest.raises(PersonaCoherenceError, match="Mobile GPU"):
+        validate_linux_chrome(persona)
+
+
+def test_linux_rejects_any_calibri_font():
+    persona = _valid_persona(recorded_fonts=["Calibri", "PMingLiU"])
+    with pytest.raises(PersonaCoherenceError, match="Windows marker fonts"):
+        validate_linux_chrome(persona)
+
+
+def test_linux_rejects_half_gb_device_memory():
+    persona = _valid_persona(device_memory_gb=0.5)
+    with pytest.raises(PersonaCoherenceError, match="device_memory_gb"):
+        validate_linux_chrome(persona)

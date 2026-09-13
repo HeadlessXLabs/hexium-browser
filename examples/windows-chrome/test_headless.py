@@ -1,7 +1,7 @@
 """Headless windows-chrome persona: Vercel detector, then Infosimples, same tab, record video.
 
 Usage:
-    python examples/win/test_headless.py
+    python examples/windows-chrome/test_headless.py
 """
 
 from pathlib import Path

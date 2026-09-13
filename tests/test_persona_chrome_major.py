@@ -4,13 +4,20 @@ from hexium_browser.persona.sample import (
     _sampled_chrome_major_ok,
     _windows_device_row_sampler,
 )
-from hexium_browser.persona.schema import MAX_HARDWARE_CONCURRENCY, MIN_SAMPLED_CHROME_MAJOR
+from hexium_browser.persona.schema import (
+    MAX_HARDWARE_CONCURRENCY,
+    MIN_DESKTOP_DEVICE_MEMORY_GB,
+    MIN_DESKTOP_HARDWARE_CONCURRENCY,
+    MIN_SAMPLED_CHROME_MAJOR,
+)
 from hexium_browser.persona.sampler.headers import Browser
 
 
 def test_constants():
     assert MIN_SAMPLED_CHROME_MAJOR == 140
     assert MAX_HARDWARE_CONCURRENCY == 32
+    assert MIN_DESKTOP_HARDWARE_CONCURRENCY == 4
+    assert MIN_DESKTOP_DEVICE_MEMORY_GB == 4.0
 
 
 def test_chrome_major_from_modern_ua():
@@ -73,6 +80,17 @@ def test_sampled_row_accepts_chrome_144():
         }
     }
     assert _sampled_chrome_major_ok(raw) is True
+
+
+def test_sampled_row_rejects_low_desktop_memory():
+    raw = {
+        "navigator": {
+            "userAgent": "Mozilla/5.0 Chrome/144.0.0.0 Safari/537.36",
+            "hardwareConcurrency": 8,
+            "deviceMemory": 0.5,
+        }
+    }
+    assert _sampled_chrome_major_ok(raw) is False
 
 
 def test_sampled_row_rejects_384_cores():

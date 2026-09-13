@@ -8,6 +8,7 @@ from hexium_browser.persona.coerce import coerce_fingerprint
 from hexium_browser.persona.rewrite_ua import (
     clamp_windows_ua_ch_platform_version,
     rewrite_chrome_version,
+    sync_windows_frozen_ua_platform_version,
 )
 from hexium_browser.persona.schema import CHROME_UA_VERSION
 
@@ -52,9 +53,9 @@ def test_rewrite_leaves_grease_brand_alone():
 
 def test_rewrite_leaves_windows_platform_version_alone():
     persona = coerce_fingerprint(windows_chrome_147_fingerprint(), seed="seed-1")
-    assert persona["ua_ch_platform_version"] == "15.0.0"
+    assert persona["ua_ch_platform_version"] == "10.0.0"
     rewritten = rewrite_chrome_version(persona, CHROME_UA_VERSION)
-    assert rewritten["ua_ch_platform_version"] == "15.0.0"
+    assert rewritten["ua_ch_platform_version"] == "10.0.0"
     assert f"Chrome/{CHROME_UA_VERSION}" in rewritten["user_agent"]
     assert rewritten["ua_ch_full_version"] == CHROME_UA_VERSION
     chrome_versions = [
@@ -84,6 +85,14 @@ def test_clamp_windows_ua_ch_platform_version():
     assert clamp_windows_ua_ch_platform_version("not-a-version") == "15.0.0"
 
 
+def test_sync_windows_frozen_ua_platform_version():
+    persona = coerce_fingerprint(windows_chrome_147_fingerprint(), seed="seed-1")
+    assert persona["ua_ch_platform_version"] == "10.0.0"
+    persona["ua_ch_platform_version"] = "15.0.0"
+    sync_windows_frozen_ua_platform_version(persona)
+    assert persona["ua_ch_platform_version"] == "10.0.0"
+
+
 def test_windows_coerce_clamps_contract_and_kernel_platform_version():
     contract19 = coerce_fingerprint(
         windows_chrome_147_fingerprint(
@@ -91,7 +100,7 @@ def test_windows_coerce_clamps_contract_and_kernel_platform_version():
         ),
         seed="seed-1",
     )
-    assert contract19["ua_ch_platform_version"] == "15.0.0"
+    assert contract19["ua_ch_platform_version"] == "10.0.0"
 
     contract13 = coerce_fingerprint(
         windows_chrome_147_fingerprint(
@@ -99,7 +108,7 @@ def test_windows_coerce_clamps_contract_and_kernel_platform_version():
         ),
         seed="seed-1",
     )
-    assert contract13["ua_ch_platform_version"] == "15.0.0"
+    assert contract13["ua_ch_platform_version"] == "10.0.0"
 
     kernel = coerce_fingerprint(
         windows_chrome_147_fingerprint(
@@ -107,4 +116,4 @@ def test_windows_coerce_clamps_contract_and_kernel_platform_version():
         ),
         seed="seed-1",
     )
-    assert kernel["ua_ch_platform_version"] == "15.0.0"
+    assert kernel["ua_ch_platform_version"] == "10.0.0"

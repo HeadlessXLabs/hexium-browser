@@ -46,6 +46,30 @@ def clamp_windows_ua_ch_platform_version(version: str | None) -> str:
     return "15.0.0"
 
 
+_FROZEN_WINDOWS_NT = "Windows NT 10.0"
+
+
+def sync_windows_frozen_ua_platform_version(persona: PersonaDict) -> PersonaDict:
+    """Match UA-CH ``platformVersion`` to the frozen ``Windows NT 10.0`` UA token.
+
+    Hexium (like Chrome) keeps ``Windows NT 10.0`` in the UA string. Client Hints
+    must not claim Win11 ``15.0.0`` while the UA still reads Win10 — BrowserScan
+    and similar parsers flag that split.
+    """
+    ua = str(persona.get("user_agent") or "")
+    if _FROZEN_WINDOWS_NT in ua and str(persona.get("ua_ch_platform") or "").lower() == "windows":
+        persona["ua_ch_platform_version"] = "10.0.0"
+    return persona
+
+
+def finalize_windows_persona(persona: PersonaDict) -> PersonaDict:
+    """Clamp then sync Windows UA-CH platform version for engine JSON."""
+    persona["ua_ch_platform_version"] = clamp_windows_ua_ch_platform_version(
+        str(persona.get("ua_ch_platform_version") or "")
+    )
+    return sync_windows_frozen_ua_platform_version(persona)
+
+
 def rewrite_chrome_version(persona: PersonaDict, version: str) -> PersonaDict:
     """Set Chrome UA + ``fullVersionList`` / ``uaFullVersion`` to *version* together."""
     ua = persona.get("user_agent") or ""

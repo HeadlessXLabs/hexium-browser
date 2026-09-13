@@ -98,7 +98,7 @@ def run(
     kwargs: dict[str, Any] = {
         "headless": headless,
         "humanize": True,
-        "show_cursor": not headless,
+        "show_cursor": not headless,  # headed demo only
         **rec,
     }
     if user_data_dir is not None:

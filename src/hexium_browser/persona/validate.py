@@ -4,7 +4,13 @@ from __future__ import annotations
 
 import re
 
-from .schema import CHROME_UA_VERSION, MAX_HARDWARE_CONCURRENCY, PersonaDict
+from .schema import (
+    CHROME_UA_VERSION,
+    MAX_HARDWARE_CONCURRENCY,
+    MIN_DESKTOP_DEVICE_MEMORY_GB,
+    MIN_DESKTOP_HARDWARE_CONCURRENCY,
+    PersonaDict,
+)
 
 _WINDOWS_PLATFORMS = {"Win32", "Win64"}
 _RENDERER_WINDOWS_RE = re.compile(r"Direct3D|D3D11|Segoe UI", re.IGNORECASE)
@@ -13,10 +19,35 @@ _RENDERER_MESA_RE = re.compile(r"Mesa|\bOpenGL\b", re.IGNORECASE)
 _RENDERER_SOFTWARE_RE = re.compile(
     r"SwiftShader|llvmpipe|Microsoft Basic Render", re.IGNORECASE
 )
+_RENDERER_MOBILE_RE = re.compile(
+    r"Adreno|\bMali\b|PowerVR|Apple GPU|Qualcomm", re.IGNORECASE
+)
 _MOBILE_UA_RE = re.compile(r"Mobile|Android|iPhone|iPad", re.IGNORECASE)
-_WINDOWS_MARKER_FONTS = ("segoe ui", "calibri")
+_WINDOWS_MARKER_FONTS = (
+    "segoe",
+    "calibri",
+    "cambria",
+    "consolas",
+    "candara",
+    "microsoft ",
+    "mingliu",
+    "pmingliu",
+    "simsun",
+    "nirmala",
+)
+_CHROME_BRANDS = {"google chrome", "chromium", "chrome"}
+_LEFTOVER_BRANDS = (
+    "brave",
+    "microsoft edge",
+    "edge",
+    "firefox",
+    "opera",
+    "vivaldi",
+    "samsung internet",
+)
 _MIN_DESKTOP_WIDTH = 1024
 _MIN_DESKTOP_HEIGHT = 600
+_CHROME_MAJOR = CHROME_UA_VERSION.split(".", 1)[0]
 
 
 class PersonaCoherenceError(ValueError):
@@ -26,8 +57,60 @@ class PersonaCoherenceError(ValueError):
 def _renderer_blob(persona: PersonaDict) -> str:
     return " ".join(
         str(persona.get(key) or "")
-        for key in ("recorded_webgl_renderer", "webgl_renderer")
+        for key in ("recorded_webgl_renderer", "webgl_renderer", "recorded_webgl_vendor")
     )
+
+
+def _uach_brands(persona: PersonaDict) -> list[dict]:
+    out: list[dict] = []
+    for key in ("ua_ch_brands", "ua_ch_full_version_list"):
+        items = persona.get(key) or []
+        if isinstance(items, list):
+            out.extend(item for item in items if isinstance(item, dict))
+    return out
+
+
+def _is_grease_brand(brand: str) -> bool:
+    lowered = brand.lower()
+    return "brand" in lowered and lowered not in _CHROME_BRANDS
+
+
+def _require_chrome_uach(persona: PersonaDict, label: str) -> None:
+    """UA, brands, and fullVersionList must be Chrome 151 together — no Brave/Edge."""
+    items = _uach_brands(persona)
+    chrome_seen = False
+    for item in items:
+        brand = str(item.get("brand") or "")
+        version = str(item.get("version") or "")
+        lowered = brand.lower()
+        if _is_grease_brand(brand):
+            continue
+        if lowered in _LEFTOVER_BRANDS or "microsoft edge" in lowered:
+            raise PersonaCoherenceError(
+                f"{label} UA-CH leftover browser brand {brand!r} version {version!r}"
+            )
+        if lowered not in _CHROME_BRANDS:
+            raise PersonaCoherenceError(
+                f"{label} UA-CH unexpected brand {brand!r}"
+            )
+        chrome_seen = True
+        if "." in version:
+            if version != CHROME_UA_VERSION:
+                raise PersonaCoherenceError(
+                    f"{label} UA-CH {brand} must be {CHROME_UA_VERSION}, got {version!r}"
+                )
+        elif version != _CHROME_MAJOR:
+            raise PersonaCoherenceError(
+                f"{label} UA-CH {brand} major must be {_CHROME_MAJOR}, got {version!r}"
+            )
+    if items and not chrome_seen:
+        raise PersonaCoherenceError(f"{label} UA-CH missing Chrome/Chromium brand")
+
+    full = str(persona.get("ua_ch_full_version") or "")
+    if full and full != CHROME_UA_VERSION:
+        raise PersonaCoherenceError(
+            f"{label} ua_ch_full_version must be {CHROME_UA_VERSION}, got {full!r}"
+        )
 
 
 def _require_chrome_151_desktop(persona: PersonaDict, label: str) -> None:
@@ -53,10 +136,21 @@ def _require_chrome_151_desktop(persona: PersonaDict, label: str) -> None:
         )
 
     cores = int(persona.get("hardware_concurrency") or 0)
-    if cores < 1 or cores > MAX_HARDWARE_CONCURRENCY:
+    if cores < MIN_DESKTOP_HARDWARE_CONCURRENCY or cores > MAX_HARDWARE_CONCURRENCY:
         raise PersonaCoherenceError(
             f"hardware_concurrency {cores} is not valid for {label} desktop"
         )
+
+    try:
+        memory = float(persona.get("device_memory_gb") or 0)
+    except (TypeError, ValueError):
+        memory = 0.0
+    if memory < MIN_DESKTOP_DEVICE_MEMORY_GB:
+        raise PersonaCoherenceError(
+            f"device_memory_gb {memory} is not valid for {label} desktop"
+        )
+
+    _require_chrome_uach(persona, label)
 
 
 def validate_linux_chrome(persona: PersonaDict) -> None:
@@ -66,9 +160,21 @@ def validate_linux_chrome(persona: PersonaDict) -> None:
         raise PersonaCoherenceError(f"Windows platform is not valid for linux-chrome: {platform}")
 
     ua_ch_platform = str(persona.get("ua_ch_platform") or "")
-    if ua_ch_platform.lower() == "windows":
+    if ua_ch_platform.lower() != "linux":
         raise PersonaCoherenceError(
-            f"Windows UA-CH platform is not valid for linux-chrome: {ua_ch_platform}"
+            f"Linux UA-CH platform required for linux-chrome, got {ua_ch_platform!r}"
+        )
+
+    ua = str(persona.get("user_agent") or "")
+    if "Windows NT" in ua:
+        raise PersonaCoherenceError("Windows UA is not valid for linux-chrome")
+    if "Linux" not in ua and "X11" not in ua:
+        raise PersonaCoherenceError("Linux/X11 UA required for linux-chrome")
+
+    platform_version = str(persona.get("ua_ch_platform_version") or "")
+    if platform_version in {"10.0.0", "15.0.0", "19.0.0"}:
+        raise PersonaCoherenceError(
+            f"Windows UA-CH platformVersion is not valid for linux-chrome: {platform_version}"
         )
 
     renderer = _renderer_blob(persona)
@@ -82,13 +188,18 @@ def validate_linux_chrome(persona: PersonaDict) -> None:
         raise PersonaCoherenceError(
             f"Software renderer is not valid for linux-chrome: {software_hit.group(0)}"
         )
+    mobile_hit = _RENDERER_MOBILE_RE.search(renderer)
+    if mobile_hit:
+        raise PersonaCoherenceError(
+            f"Mobile GPU is not valid for linux-chrome desktop: {mobile_hit.group(0)}"
+        )
 
     _require_chrome_151_desktop(persona, "linux-chrome")
 
     fonts = [str(f).lower() for f in (persona.get("recorded_fonts") or [])]
-    if fonts and all(any(marker in font for marker in _WINDOWS_MARKER_FONTS) for font in fonts):
+    if any(any(marker in font for marker in _WINDOWS_MARKER_FONTS) for font in fonts):
         raise PersonaCoherenceError(
-            "Segoe/Calibri-only font list is not valid for linux-chrome"
+            "Windows marker fonts are not valid for linux-chrome"
         )
 
 
@@ -113,6 +224,14 @@ def validate_windows_chrome(persona: PersonaDict) -> None:
         raise PersonaCoherenceError(
             f"Windows UA-CH platform required for windows-chrome, got {ua_ch_platform!r}"
         )
+
+    ua = str(persona.get("user_agent") or "")
+    if _MOBILE_UA_RE.search(ua):
+        raise PersonaCoherenceError("mobile UA is not valid for windows-chrome desktop")
+    if "Windows NT" not in ua:
+        raise PersonaCoherenceError("Windows NT UA required for windows-chrome")
+    if "Linux" in ua or "X11" in ua:
+        raise PersonaCoherenceError("Linux UA is not valid for windows-chrome")
 
     renderer = _renderer_blob(persona)
     software_hit = _RENDERER_SOFTWARE_RE.search(renderer)

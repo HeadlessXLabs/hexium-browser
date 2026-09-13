@@ -48,11 +48,13 @@ def test_timezone_independent_of_stealth_args():
     assert not any(a.startswith("--hexium-seed=") for a in args)
 
 
-def test_no_flags_when_not_set():
+def test_no_flags_when_not_set(monkeypatch):
+    monkeypatch.delenv("HEXIUM_ALLOW_3P_COOKIES", raising=False)
     args = build_args(stealth_args=True, extra_args=None)
     assert not any(a.startswith("--hexium-timezone=") for a in args)
     assert not any(a.startswith("--lang=") for a in args)
     assert not any(a.startswith("--hexium-locale=") for a in args)
+    assert "--hexium-allow-3p-cookies" not in args
 
 
 def test_fingerprint_off():

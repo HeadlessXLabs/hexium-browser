@@ -1,6 +1,6 @@
 """
 Visual + functional test for humanize.
-Virtual SVG cursor follows Playwright API moves (show_cursor=True).
+Blue Camoufox-style ring follows Playwright API moves (show_cursor=True).
 """
 import pytest
 pytestmark = pytest.mark.slow
@@ -24,8 +24,8 @@ if __name__ == "__main__":
 
     print("=" * 70)
     print("  HUMAN-LIKE BEHAVIOR VISUAL TEST")
-    print("  Virtual Hexium SVG cursor — driven by Playwright API only")
-    print("  Do not move your physical mouse; watch the SVG pointer")
+    print("  Blue highlighter ring — driven by Playwright API only")
+    print("  Do not move your physical mouse; watch the ring")
     print("=" * 70)
 
     results = []
