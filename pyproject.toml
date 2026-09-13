@@ -60,6 +60,8 @@ path = "src/hexium_browser/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/hexium_browser"]
+# Windows TTF pack is in git for editable/Docker installs; keep PyPI wheels small.
+exclude = ["hexium_browser/persona/data/fonts/**"]
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -70,6 +72,7 @@ include = [
     "/CHANGELOG.md",
     "/pyproject.toml",
 ]
+exclude = ["/src/hexium_browser/persona/data/fonts"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

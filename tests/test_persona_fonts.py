@@ -60,3 +60,13 @@ def test_generate_fontconfig_rewrites_dir_to_absolute(tmp_path, monkeypatch):
 def test_default_fonts_dir_is_under_hexium_home():
     assert DEFAULT_WINDOWS_FONTS_DIR == Path.home() / ".hexium" / "fonts" / "windows"
     assert "Drive512" not in str(DEFAULT_WINDOWS_FONTS_DIR)
+
+
+def test_resolve_uses_packaged_wrapper_fonts(monkeypatch):
+    monkeypatch.delenv("HEXIUM_FONTS_DIR", raising=False)
+    from hexium_browser.persona.fonts import PACKAGED_WINDOWS_FONTS_DIR
+
+    path = resolve_windows_fonts_dir()
+    assert path == PACKAGED_WINDOWS_FONTS_DIR.resolve()
+    assert "Drive512" not in str(path)
+    assert (path / "segoeui.ttf").is_file()

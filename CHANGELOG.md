@@ -10,6 +10,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
+### [wrapper]
+
+- Windows font pack for `windows-chrome` ships in the wrapper (`persona/data/fonts/windows`). `HEXIUM_FONTS_DIR` still overrides.
+
 ---
 
 ## [0.1.1] — 2026-09-13

@@ -273,7 +273,7 @@ launch(fingerprint="off")             # fingerprint patches off
 launch(persona="windows-chrome", fingerprint="account-1")  # same machine next time
 ```
 
-Windows-on-Linux needs a Segoe pack (`HEXIUM_FONTS_DIR`, or the engine Windows font bundle). Desktop UA-CH `model` is **empty** (stock Chrome 151). Do not cartesian OS×GPU — one OS + one joint sample.
+Windows-on-Linux needs the Segoe pack shipped in the wrapper (`HEXIUM_FONTS_DIR` overrides). Desktop UA-CH `model` is **empty** (stock Chrome 151). Do not cartesian OS×GPU — one OS + one joint sample.
 
 ```bash
 python examples/linux_chrome_persona.py
@@ -430,7 +430,7 @@ browser = launch(
 )
 ```
 
-Linux default persona is `linux-native`. Windows default is `windows-native`. macOS default is `macos-native`. `windows-chrome` needs a Segoe pack (`HEXIUM_FONTS_DIR`, or the engine Windows font bundle). Named `profile=` keeps the same fingerprint; a bare `launch()` is a new visitor each time.
+Linux default persona is `linux-native`. Windows default is `windows-native`. macOS default is `macos-native`. `windows-chrome` uses the wrapper Segoe pack (`HEXIUM_FONTS_DIR` to override). Named `profile=` keeps the same fingerprint; a bare `launch()` is a new visitor each time.
 
 ### Sites challenge fresh sessions but work after first visit
 

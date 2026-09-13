@@ -13,7 +13,7 @@ launch(persona="windows-chrome", fingerprint="account-1")
 
 ## Linux host
 
-Needs a Segoe pack: `HEXIUM_FONTS_DIR`, or the engine Windows font bundle. Without fonts, launch should refuse rather than mix Linux fonts into a Win32 UA.
+Needs a Segoe pack. The wrapper ships `persona/data/fonts/windows`. Override with `HEXIUM_FONTS_DIR` if you keep fonts elsewhere. Without fonts, launch refuses rather than mix Linux fonts into a Win32 UA.
 
 **Known tell:** on Linux, WebGL **pixels** can disagree with the spoofed renderer **name** (about −5% vs real Windows Chrome). That pixel-vs-name mismatch is **not** claimed fixed. Do not treat “hash matches Windows” as a guarantee.
 

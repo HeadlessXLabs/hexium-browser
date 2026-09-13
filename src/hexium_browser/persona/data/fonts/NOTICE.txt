@@ -1,0 +1,7 @@
+Windows-on-Linux (`windows-chrome`) uses `fonts/windows/` plus
+`persona/data/windows-fonts.conf`.
+
+Do not edit faces in this tree. Fallback coverage is part of the fingerprint.
+
+Typefaces remain owned by their vendors (Windows system faces). Research use
+in this package; no claim of copyright on the fonts themselves.

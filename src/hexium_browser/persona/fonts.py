@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 _PACKAGED_WINDOWS_CONF = Path(__file__).resolve().parent / "data" / "windows-fonts.conf"
+PACKAGED_WINDOWS_FONTS_DIR = Path(__file__).resolve().parent / "data" / "fonts" / "windows"
 
 DEFAULT_WINDOWS_FONTS_DIR = Path.home() / ".hexium" / "fonts" / "windows"
 DEFAULT_WINDOWS_FONTS_CONF = _PACKAGED_WINDOWS_CONF
@@ -21,8 +22,8 @@ class WindowsFontPackError(FileNotFoundError):
 def resolve_windows_fonts_dir(fonts_dir: str | os.PathLike | None = None) -> Path:
     """Return the Windows TTF pack, or raise if Segoe is missing.
 
-    ``HEXIUM_FONTS_DIR`` overrides. Launch must not proceed with a Win32
-    persona when this pack is absent.
+    Order: explicit ``fonts_dir``, ``HEXIUM_FONTS_DIR``, packaged wrapper
+    fonts, then ``~/.hexium/fonts/windows``.
     """
     if fonts_dir is not None:
         candidates = [Path(os.fspath(fonts_dir)).expanduser()]
@@ -31,7 +32,7 @@ def resolve_windows_fonts_dir(fonts_dir: str | os.PathLike | None = None) -> Pat
         if override:
             candidates = [Path(override).expanduser()]
         else:
-            candidates = [DEFAULT_WINDOWS_FONTS_DIR]
+            candidates = [PACKAGED_WINDOWS_FONTS_DIR, DEFAULT_WINDOWS_FONTS_DIR]
     last_error: WindowsFontPackError | None = None
     for raw in candidates:
         path = raw.resolve()
