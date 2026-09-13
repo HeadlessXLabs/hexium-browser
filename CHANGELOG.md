@@ -10,6 +10,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
+### [wrapper]
+
+- `hexium-browser fetch` extracts the engine tarball once. A loop around `tar.extractall` made CI look stuck after “Extracting to ~/.hexium/hexium-v…”.
+
 ---
 
 ## [0.1.1] — 2026-09-13

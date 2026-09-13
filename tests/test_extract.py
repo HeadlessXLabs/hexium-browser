@@ -43,6 +43,17 @@ class TestExtractTar:
         assert (dest / "chrome").read_bytes() == b"binary"
         assert (dest / "lib" / "libfoo.so").read_bytes() == b"lib"
 
+    def test_many_members_extract_once(self, tmp_path):
+        members = {f"f{i:04d}": b"x" for i in range(200)}
+        members["chrome"] = b"binary"
+        archive = _create_tar_gz(tmp_path, members)
+        dest = tmp_path / "out"
+        dest.mkdir()
+        _extract_tar(archive, dest)
+        assert (dest / "chrome").read_bytes() == b"binary"
+        assert (dest / "f0000").read_bytes() == b"x"
+        assert (dest / "f0199").read_bytes() == b"x"
+
     def test_path_traversal_blocked(self, tmp_path):
         archive = tmp_path / "evil.tar.gz"
         with tarfile.open(archive, "w:gz") as tar:

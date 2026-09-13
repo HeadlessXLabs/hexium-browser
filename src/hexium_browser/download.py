@@ -257,6 +257,7 @@ def _extract_archive(
 
 
 def _extract_tar(archive_path: Path, dest_dir: Path) -> None:
+    dest_resolved = dest_dir.resolve()
     with tarfile.open(archive_path, "r:gz") as tar:
         safe_members = []
         for member in tar.getmembers():
@@ -266,13 +267,16 @@ def _extract_tar(archive_path: Path, dest_dir: Path) -> None:
                     continue
             else:
                 member_path = (dest_dir / member.name).resolve()
-                if not str(member_path).startswith(str(dest_dir.resolve())):
+                if not str(member_path).startswith(str(dest_resolved)):
                     raise RuntimeError(f"Archive contains path traversal: {member.name}")
             safe_members.append(member)
-            extract_kwargs = {}
-            if sys.version_info >= (3, 12):
-                extract_kwargs["filter"] = "data"
-            tar.extractall(dest_dir, members=safe_members, **extract_kwargs)
+        # One extractall — never inside the member loop (Chromium archives are
+        # thousands of files; extracting the growing prefix each time hangs CI).
+        extract_kwargs = {}
+        if sys.version_info >= (3, 12):
+            extract_kwargs["filter"] = "data"
+        tar.extractall(dest_dir, members=safe_members, **extract_kwargs)
+        logger.info("Extracted %s archive members", len(safe_members))
 
 
 def _extract_zip(archive_path: Path, dest_dir: Path) -> None:
