@@ -3,16 +3,16 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/hexium-browser/"><img src="https://img.shields.io/pypi/v/hexium-browser?logo=pypi&logoColor=white" alt="PyPI"></a>
-  <a href="https://pypi.org/project/hexium-browser/"><img src="https://img.shields.io/pepy/dt/hexium-browser?label=pypi&logo=pypi&logoColor=white" alt="PyPI Downloads"></a>
-  <a href="https://hub.docker.com/r/headlessxlabs/hexium-browser"><img src="https://img.shields.io/docker/pulls/headlessxlabs/hexium-browser?label=docker&logo=docker&logoColor=white" alt="Docker Pulls"></a>
-  <a href="https://github.com/HeadlessXLabs/hexium-browser"><img src="https://img.shields.io/github/stars/HeadlessXLabs/hexium-browser" alt="Stars"></a>
-  <a href="https://github.com/HeadlessXLabs/hexium-browser"><img src="https://img.shields.io/github/last-commit/HeadlessXLabs/hexium-browser/develop" alt="Last Commit"></a>
-  <a href="LICENSE.md"><img src="https://img.shields.io/github/license/HeadlessXLabs/hexium-browser" alt="License"></a>
+  <a href="https://pypi.org/project/hexium-browser/"><img src="https://img.shields.io/pypi/v/hexium-browser?style=flat-square&logo=pypi&logoColor=white&label=version" alt="Published version on PyPI"></a>
+  <a href="https://pypi.org/project/hexium-browser/"><img src="https://img.shields.io/pepy/dt/hexium-browser?style=flat-square&logo=pypi&logoColor=white&label=downloads" alt="PyPI downloads"></a>
+  <a href="https://hub.docker.com/r/headlessxlabs/hexium-browser"><img src="https://img.shields.io/docker/pulls/headlessxlabs/hexium-browser?style=flat-square&logo=docker&logoColor=white" alt="Docker pulls"></a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/badge/license-AGPL--3.0--only-a32d2d?style=flat-square&logo=gnu&logoColor=white" alt="AGPL-3.0-only"></a>
+  <a href="https://github.com/HeadlessXLabs/hexium-browser/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/HeadlessXLabs/hexium-browser/ci.yml?branch=develop&style=flat-square&label=CI" alt="CI"></a>
+  <a href="https://github.com/HeadlessXLabs/hexium-browser"><img src="https://img.shields.io/github/stars/HeadlessXLabs/hexium-browser?style=flat-square" alt="GitHub stars"></a>
   <br>
-  <img src="https://img.shields.io/badge/Chromium-151-4285F4?logo=googlechrome&logoColor=white" alt="Chromium 151">
-  <img src="https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white" alt="Python 3.9+">
-  <img src="https://img.shields.io/badge/Playwright-only-2EAD33?logo=playwright&logoColor=white" alt="Playwright">
+  <img src="https://img.shields.io/pypi/pyversions/hexium-browser?style=flat-square&logo=python&logoColor=white" alt="Python versions on PyPI">
+  <img src="https://img.shields.io/badge/Chromium-151-4285F4?style=flat-square&logo=googlechrome&logoColor=white" alt="Chromium 151">
+  <img src="https://img.shields.io/badge/Playwright-only-2EAD33?style=flat-square&logo=playwright&logoColor=white" alt="Playwright">
 </p>
 
 **Launch like Chrome. Stay undetected.**
