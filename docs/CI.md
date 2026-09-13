@@ -32,5 +32,27 @@ Install `hexium-browser` first so `hexium-browser fetch` exists.
 Local image:
 
 ```bash
-docker build -t headlessxlabs/hexium-browser .
+docker build -t saifyxpro/hexium-browser .
 ```
+
+## Publish (PyPI + Docker)
+
+Do **not** run these on every push. They fire on `v*` tags (`v0.1.1`) or **workflow_dispatch**.
+
+| Workflow | File |
+| --- | --- |
+| PyPI | [`.github/workflows/publish-pypi.yml`](../.github/workflows/publish-pypi.yml) |
+| Docker Hub | [`.github/workflows/publish-docker.yml`](../.github/workflows/publish-docker.yml) |
+
+Both **fail** if that version is already published (PyPI JSON 200, or Docker Hub tag 200). They do not overwrite `hexium-browser==0.1.0` or `saifyxpro/hexium-browser:0.1.1`. `latest` is only pushed after a **new** version tag check passes. Git tags must match `src/hexium_browser/_version.py`.
+
+Secrets / GitHub Environment:
+
+| Name | Used by |
+| --- | --- |
+| GitHub Environment `pypi` | Trusted publishing (OIDC) and/or `PYPI_API_TOKEN` |
+| `PYPI_API_TOKEN` | PyPI (optional if Trusted Publisher is set) |
+| `DOCKERHUB_USERNAME` | Docker Hub |
+| `DOCKERHUB_TOKEN` | Docker Hub access token |
+
+Engine tarball tags (`Hexium-151…`) do **not** trigger these workflows.

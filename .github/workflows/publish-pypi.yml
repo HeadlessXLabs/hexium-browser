@@ -1,0 +1,80 @@
+name: Publish PyPI
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+concurrency:
+  group: publish-pypi
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Upload hexium-browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Optional GitHub Environment named `pypi` (Trusted Publisher). Token also works.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Read package version
+        id: ver
+        run: |
+          VERSION=$(grep -oE '__version__ = "[^"]+"' src/hexium_browser/_version.py | head -1 | cut -d'"' -f2)
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "Package version: ${VERSION}"
+
+      - name: Tag must match package version
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          if [[ "${GITHUB_REF_NAME}" != v* ]]; then
+            echo "ERROR: PyPI publish only runs on v* tags (got ${GITHUB_REF_NAME})." >&2
+            exit 1
+          fi
+          if [[ "${TAG}" != "${VERSION}" ]]; then
+            echo "ERROR: git tag v${TAG} does not match src/hexium_browser/_version.py ${VERSION}." >&2
+            exit 1
+          fi
+
+      - name: Refuse if this version is already on PyPI
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          URL="https://pypi.org/pypi/hexium-browser/${VERSION}/json"
+          CODE=$(curl -sS -o /tmp/pypi.json -w "%{http_code}" "${URL}")
+          if [[ "${CODE}" == "200" ]]; then
+            echo "ERROR: hexium-browser==${VERSION} already exists on PyPI. Bump __version__ and tag a new release." >&2
+            exit 1
+          fi
+          if [[ "${CODE}" != "404" ]]; then
+            echo "ERROR: unexpected PyPI status ${CODE} for ${URL}" >&2
+            cat /tmp/pypi.json >&2 || true
+            exit 1
+          fi
+          echo "PyPI does not have ${VERSION} yet — ok to publish."
+
+      - name: Build
+        run: |
+          python -m pip install -U pip build twine
+          python -m build
+          python -m twine check dist/*
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: false
+          verbose: true
+          password: ${{ secrets.PYPI_API_TOKEN }}

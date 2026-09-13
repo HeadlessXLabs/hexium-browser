@@ -1,0 +1,83 @@
+name: Publish Docker
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+concurrency:
+  group: publish-docker
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: saifyxpro/hexium-browser
+
+jobs:
+  publish:
+    name: Build and push ${{ env.IMAGE }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Read package version
+        id: ver
+        run: |
+          VERSION=$(grep -oE '__version__ = "[^"]+"' src/hexium_browser/_version.py | head -1 | cut -d'"' -f2)
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "Image version: ${VERSION}"
+
+      - name: Tag must match package version
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          if [[ "${TAG}" != "${VERSION}" ]]; then
+            echo "ERROR: git tag v${TAG} does not match _version.py ${VERSION}." >&2
+            exit 1
+          fi
+
+      - name: Refuse if this version tag already exists on Docker Hub
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          URL="https://hub.docker.com/v2/repositories/${IMAGE}/tags/${VERSION}/"
+          CODE=$(curl -sS -o /tmp/dh.json -w "%{http_code}" "${URL}")
+          if [[ "${CODE}" == "200" ]]; then
+            echo "ERROR: ${IMAGE}:${VERSION} already exists on Docker Hub. Bump __version__ — will not overwrite." >&2
+            exit 1
+          fi
+          if [[ "${CODE}" != "404" ]]; then
+            echo "ERROR: unexpected Docker Hub status ${CODE} for ${URL}" >&2
+            cat /tmp/dh.json >&2 || true
+            exit 1
+          fi
+          echo "Docker Hub does not have ${IMAGE}:${VERSION} yet — ok to push. latest may be updated."
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.ver.outputs.version }}
+            ${{ env.IMAGE }}:latest
+          provenance: false
+          sbom: false
