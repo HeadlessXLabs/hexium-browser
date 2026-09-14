@@ -98,8 +98,12 @@ launch(proxy="http://USER:PASS@host:port", profile="Shop", geoip=True)
 | [`examples/linux-native/allegro_pl_headed_http_proxy_ephemeral_random_profile.py`](../examples/linux-native/allegro_pl_headed_http_proxy_ephemeral_random_profile.py) | `linux-native` | **Recommended shop pattern:** headed + HTTP proxy + ephemeral random profile |
 | [`examples/windows-chrome/allegro_pl_headed_windows_chrome_http_proxy_ephemeral_random_profile.py`](../examples/windows-chrome/allegro_pl_headed_windows_chrome_http_proxy_ephemeral_random_profile.py) | `windows-chrome` | Same flow with sampled Win32 (known WebGL tell on Linux — not the shop default) |
 | [`examples/windows-chrome/win-google-http-proxy.py`](../examples/windows-chrome/win-google-http-proxy.py) | `windows-chrome` | Minimal Google + proxy smoke |
+| [`examples/windows-chrome/browserscan-http-proxy-with-profile.py`](../examples/windows-chrome/browserscan-http-proxy-with-profile.py) | `windows-chrome` | Headed BrowserScan + HTTP proxy + **named** profile (`HEXIUM_PROFILE`, default `BrowserScan`). Use a sticky proxy session. |
+| [`examples/linux-native/whoer_headed_http_proxy_ephemeral_random_profile.py`](../examples/linux-native/whoer_headed_http_proxy_ephemeral_random_profile.py) | `linux-native` | Headed [whoer.net](https://whoer.net/) + rotating HTTP proxy + ephemeral profile (20s then screenshot) |
+| [`examples/windows-chrome/whoer_headed_http_proxy_ephemeral_random_profile.py`](../examples/windows-chrome/whoer_headed_http_proxy_ephemeral_random_profile.py) | `windows-chrome` | Same whoer flow |
+| [`examples/linux-chrome/whoer_headed_http_proxy_ephemeral_random_profile.py`](../examples/linux-chrome/whoer_headed_http_proxy_ephemeral_random_profile.py) | `linux-chrome` | Same whoer flow |
 
-Shared launch kwargs live in [`examples/allegro_common.py`](../examples/allegro_common.py): `ephemeral=True`, `geoip=True`, `humanize=True`, proxy from `HEXIUM_PROXY`.
+Shared launch kwargs: [`examples/allegro_common.py`](../examples/allegro_common.py) (Allegro) and [`examples/whoer_common.py`](../examples/whoer_common.py) (whoer). Both use `ephemeral=True`, `geoip=True`, `humanize=True`, proxy from `HEXIUM_PROXY`.
 
 ```bash
 export HEXIUM_BINARY_PATH=/path/to/hexium-v151.0.7922.174.1/chrome   # from fetch, or HEXIUM_BINARY_PATH

@@ -33,6 +33,11 @@ Sites see **Google Chrome 151**. You see Hexium Browser — a C++ persona compil
   <br><em>Headed linux-native Allegro cookie consent — <code>examples/linux-native/allegro_pl_headed_http_proxy_ephemeral_random_profile.py</code></em>
 </p>
 
+<p align="center">
+  <img src="assets/screenshots/whoer_headed_linux_native.png" alt="Headed linux-native whoer.net" width="800">
+  <br><em>Headed linux-native [whoer.net](https://whoer.net/) — <code>examples/linux-native/whoer_headed_http_proxy_ephemeral_random_profile.py</code></em>
+</p>
+
 ## Features
 
 - Playwright `launch()` — headed and `--headless=new`
@@ -186,6 +191,12 @@ Shop / cookie-consent capture (headed **linux-native**, ephemeral session, HTTP 
 <img src="assets/screenshots/allegro_headed_linux.png" width="700" alt="Headed linux-native Allegro cookie consent">
 <br><em>Headed Linux native — Allegro consent. Use headed + ephemeral + your own proxy for shops; do not run this flow headless.</em>
 </p>
+
+[whoer.net](https://whoer.net/) — headed, ephemeral random profile, rotating HTTP proxy (`HEXIUM_PROXY`). Captures from `examples/*/whoer_headed_http_proxy_ephemeral_random_profile.py`.
+
+| ![whoer linux-native](assets/screenshots/whoer_headed_linux_native.png) | ![whoer windows-chrome](assets/screenshots/whoer_headed_windows_chrome.png) | ![whoer linux-chrome](assets/screenshots/whoer_headed_linux_chrome.png) |
+| --- | --- | --- |
+| `linux-native` | `windows-chrome` | `linux-chrome` |
 
 Headless walk (`examples/linux-native/test_headless.py`, `examples/windows-chrome/test_headless.py`): [headless-detector.vercel.app](https://headless-detector.vercel.app/) then [Infosimples detect-headless](https://infosimples.github.io/detect-headless/).
 
