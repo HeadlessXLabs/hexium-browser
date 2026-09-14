@@ -319,6 +319,22 @@ def _ensure_locale_env(kwargs: dict[str, Any], locale: str | None) -> None:
     kwargs["env"] = env
 
 
+def _ensure_timezone_env(kwargs: dict[str, Any], timezone: str | None) -> None:
+    """Pin libc ``TZ`` to the GeoIP / ``timezone=`` IANA id.
+
+    Blink ``Intl`` follows ``--hexium-timezone``. ``Date.toString()`` still
+    reads the process timezone, so whoer shows IP tz vs "Eastern Daylight
+    Time" unless ``TZ`` matches. Same pattern as ``HEXIUM_WEBRTC_MASK_IP``.
+    """
+    if not timezone:
+        return
+    os.environ["TZ"] = timezone
+    existing = kwargs.get("env")
+    env = dict(existing) if existing is not None else dict(os.environ)
+    env["TZ"] = timezone
+    kwargs["env"] = env
+
+
 class _ProxySettingsRequired(TypedDict):
     server: str
 
@@ -587,6 +603,7 @@ def launch_persistent_context(
     _ensure_windows_fontconfig_env(context_kwargs, chrome_args, user_data_dir)
     _ensure_persona_json_env(context_kwargs, user_data_dir)
     _ensure_locale_env(context_kwargs, locale)
+    _ensure_timezone_env(context_kwargs, timezone)
     _ensure_webrtc_mask_env(context_kwargs, chrome_args)
 
     seed_classic_theme_prefs(user_data_dir)
@@ -745,6 +762,7 @@ async def launch_persistent_context_async(
     _ensure_windows_fontconfig_env(context_kwargs, chrome_args, user_data_dir)
     _ensure_persona_json_env(context_kwargs, user_data_dir)
     _ensure_locale_env(context_kwargs, locale)
+    _ensure_timezone_env(context_kwargs, timezone)
     _ensure_webrtc_mask_env(context_kwargs, chrome_args)
 
     seed_classic_theme_prefs(user_data_dir)

@@ -10,6 +10,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
+### [wrapper]
+
+- GeoIP also sets process `TZ` so JavaScript `Date` matches the exit timezone (whoer JS time vs Intl).
+
 ---
 
 ## [2026-09-14] — git main (no PyPI bump)

@@ -142,7 +142,7 @@ launch(persona="windows-chrome", fingerprint="account-1")
 
 ## GeoIP
 
-On by default. With `pip install 'hexium-browser[geoip]'`, Hexium maps the **egress IP** (proxy exit, or the machine public IP) to timezone, locale, `navigator.languages`, `--hexium-webrtc-ip=`, and `HEXIUM_WEBRTC_MASK_IP`.
+On by default. With `pip install 'hexium-browser[geoip]'`, Hexium maps the **egress IP** (proxy exit, or the machine public IP) to timezone, locale, `navigator.languages`, `--hexium-webrtc-ip=`, `HEXIUM_WEBRTC_MASK_IP`, and the process `TZ` (so `Date.toString()` matches `Intl`, not the host).
 
 - `geoip=False` opts out
 - Explicit `timezone=` / `locale=` always win

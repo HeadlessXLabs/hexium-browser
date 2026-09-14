@@ -514,6 +514,28 @@ def test_launch_persistent_pk_locale_uses_gb_pack(mock_geoip, _mock_bin, tmp_pat
     assert env["LC_ALL"] == "en_GB.UTF-8"
 
 
+@patch("hexium_browser.browser.ensure_binary", return_value="/fake/chrome")
+@patch(
+    "hexium_browser.browser.maybe_resolve_geoip",
+    return_value=("America/Chicago", "en-US", "1.2.3.4"),
+)
+def test_launch_persistent_sets_tz_env_from_geoip(mock_geoip, _mock_bin, tmp_path, monkeypatch):
+    """JS Date uses libc TZ; pin it to the GeoIP IANA zone (not the host)."""
+    monkeypatch.setenv("HEXIUM_HOME", str(tmp_path))
+    monkeypatch.delenv("HEXIUM_USER_DATA_DIR", raising=False)
+    monkeypatch.delenv("HEXIUM_PROFILES_DIR", raising=False)
+    monkeypatch.delenv("TZ", raising=False)
+    pw_cm, pw, _context = _make_mock_pw_and_context()
+
+    with patch("playwright.sync_api.sync_playwright", return_value=pw_cm):
+        launch_persistent_context(tmp_path / "profile", humanize=False)
+
+    env = pw.chromium.launch_persistent_context.call_args.kwargs["env"]
+    assert env["TZ"] == "America/Chicago"
+    chrome_args = pw.chromium.launch_persistent_context.call_args.kwargs["args"]
+    assert "--hexium-timezone=America/Chicago" in chrome_args
+
+
 # ---------------------------------------------------------------------------
 # apply_geoip (persona overlay — after sample, locale/tz/webrtc only)
 # ---------------------------------------------------------------------------
