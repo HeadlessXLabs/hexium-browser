@@ -26,7 +26,7 @@ Sites see **Google Chrome 151**. You see Hexium Browser — a C++ persona compil
 <table>
   <tr>
     <td width="460" valign="middle">
-      <a href="https://proxylane.dev/?utm_source=hexium&amp;utm_medium=partnership&amp;utm_campaign=hexium_sponsor_202610&amp;utm_content=readme_sponsor"><strong>ProxyLane</strong></a> — Hexium brings the browser, you bring the proxy. ProxyLane gives your Hexium profiles clean residential IPs, so the site sees Chrome 151 on a real home connection.
+      <a href="https://proxylane.dev/?utm_source=hexium&amp;utm_medium=partnership&amp;utm_campaign=hexium_sponsor_202610&amp;utm_content=readme_sponsor"><strong>ProxyLane</strong></a> — Clean residential proxies for your Hexium profiles. 28M real P2P IPs, pay only for the traffic you use, and it never expires.
       <br /><br />
       <strong>Why <a href="https://proxylane.dev/?utm_source=hexium&amp;utm_medium=partnership&amp;utm_campaign=hexium_sponsor_202610&amp;utm_content=readme_sponsor">ProxyLane</a> for Hexium?</strong>
       <ul>
@@ -37,7 +37,7 @@ Sites see **Google Chrome 151**. You see Hexium Browser — a C++ persona compil
         <li>From $2/GB, traffic never expires</li>
         <li>No KYC, pay by card or crypto</li>
       </ul>
-      Special code for Hexium users:
+      🎁 Special code for Hexium users:
       <br />
       <strong>HEXIUM35</strong> — 35% off any Residential package
       <br /><br />
