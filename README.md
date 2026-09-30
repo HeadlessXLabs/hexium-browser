@@ -25,14 +25,14 @@ Sites see **Google Chrome 151**. You see Hexium Browser — a C++ persona compil
 
 <table>
   <tr>
-    <td valign="middle">
+    <td width="460" valign="middle">
       <a href="https://proxylane.dev/?utm_source=hexium&amp;utm_medium=partnership&amp;utm_campaign=hexium_sponsor_202610&amp;utm_content=readme_sponsor"><strong>ProxyLane</strong></a> — Hexium brings the browser, you bring the proxy. ProxyLane gives your Hexium profiles clean residential IPs, so the site sees Chrome 151 on a real home connection.
       <br /><br />
       <strong>Why <a href="https://proxylane.dev/?utm_source=hexium&amp;utm_medium=partnership&amp;utm_campaign=hexium_sponsor_202610&amp;utm_content=readme_sponsor">ProxyLane</a> for Hexium?</strong>
       <ul>
         <li>28M real P2P residential IPs in 195 countries</li>
-        <li>SOCKS5 and HTTP(S) for <code>launch(proxy=...)</code></li>
-        <li>Sticky IP up to 72h for a persistent <code>profile=</code></li>
+        <li>SOCKS5 and HTTP(S) for <code>launch(proxy=)</code></li>
+        <li>Sticky IP up to 72h per <code>profile=</code></li>
         <li>Country, city, ZIP, ISP and ASN targeting for GeoIP</li>
         <li>From $2/GB, traffic never expires</li>
         <li>No KYC, pay by card or crypto</li>
