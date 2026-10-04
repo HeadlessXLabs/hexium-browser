@@ -21,6 +21,36 @@ Playwright in. Chrome 151 out. Built by HeadlessX Labs.
 
 Sites see **Google Chrome 151**. You see Hexium Browser — a C++ persona compiled into Chromium, persistent disk profiles, humanize, and GeoIP locale. No JS injectors.
 
+## Sponsor
+
+<table>
+  <tr>
+    <td width="460" valign="middle">
+      <a href="https://proxylane.dev/?utm_source=hexium&amp;utm_medium=partnership&amp;utm_campaign=hexium_sponsor_202610&amp;utm_content=readme_sponsor"><strong>ProxyLane</strong></a> — Clean residential proxies for your Hexium profiles. 28M real P2P IPs, pay only for the traffic you use, and it never expires.
+      <br /><br />
+      <strong>Why <a href="https://proxylane.dev/?utm_source=hexium&amp;utm_medium=partnership&amp;utm_campaign=hexium_sponsor_202610&amp;utm_content=readme_sponsor">ProxyLane</a> for Hexium?</strong>
+      <ul>
+        <li>28M real P2P residential IPs in 195 countries</li>
+        <li>SOCKS5 and HTTP(S) for <code>launch(proxy=)</code></li>
+        <li>Sticky IP up to 72h per <code>profile=</code></li>
+        <li>Country, city, ZIP, ISP and ASN targeting for GeoIP</li>
+        <li>From $2/GB, traffic never expires</li>
+        <li>No KYC, pay by card or crypto</li>
+      </ul>
+      🎁 Special code for Hexium users:
+      <br />
+      <strong>HEXIUM35</strong> — 35% off any Residential package
+      <br /><br />
+      <a href="https://proxylane.dev/?utm_source=hexium&amp;utm_medium=partnership&amp;utm_campaign=hexium_sponsor_202610&amp;utm_content=readme_sponsor"><strong>Try ProxyLane now</strong></a>
+    </td>
+    <td width="440" align="center" valign="middle">
+      <a href="https://proxylane.dev/?utm_source=hexium&amp;utm_medium=partnership&amp;utm_campaign=hexium_sponsor_202610&amp;utm_content=readme_sponsor">
+        <img src="assets/banners/proxylane-sponsor.png" alt="ProxyLane residential proxies for Hexium" width="420" />
+      </a>
+    </td>
+  </tr>
+</table>
+
 <p align="center">
   <a href="assets/recordings/google_search_human_headless_new_profile.webm">
     <img src="assets/recordings/google_search_human_headless_new_profile.gif" alt="Headless Google search, new profile" width="800">
@@ -449,6 +479,8 @@ browser = launch(
     humanize=True,   # default; mouse, keys, scroll
 )
 ```
+
+Need residential IPs? [ProxyLane](https://proxylane.dev/?utm_source=hexium&utm_medium=partnership&utm_campaign=hexium_sponsor_202610&utm_content=readme_troubleshooting), this month's sponsor, gives Hexium users 35% off with code `HEXIUM35`.
 
 `geoip=True` needs `pip install 'hexium-browser[geoip]'`. Without the extra, launch still works and timezone stays the sampled UTC.
 
